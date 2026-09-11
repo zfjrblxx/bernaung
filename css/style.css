@@ -2081,3 +2081,162 @@ body.manage-body .modal-actions .btn{width:100%}
   body.manage-body .manage-modal-box{padding:22px;max-height:92vh}
   body.manage-body .modal-actions{grid-template-columns:1fr 1fr}
 }
+
+
+/* =========================================================
+   BERNAUNG — MANAGE PHOTO / MUSIC / FLOATING SAVE
+   ========================================================= */
+body.manage-body .photo-mode-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:7px;
+  margin-bottom:16px;
+}
+body.manage-body .photo-mode-card,
+body.manage-body .music-choice{
+  width:100%;
+  min-height:0;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 13px;
+  border:1px solid #dce2dc;
+  border-radius:8px;
+  background:#fff;
+}
+body.manage-body .photo-mode-card:hover,
+body.manage-body .music-choice:hover{background:#fafbf9}
+body.manage-body .photo-mode-card span,
+body.manage-body .music-choice span{
+  flex:1;
+  min-width:0;
+}
+body.manage-body .photo-mode-card b,
+body.manage-body .music-choice b{font-size:11px;line-height:1.3}
+body.manage-body .photo-mode-card small,
+body.manage-body .music-choice small{font-size:9px;line-height:1.4}
+body.manage-body .music-choice-list{display:grid;gap:7px}
+body.manage-body .music-preview{
+  margin-left:auto;
+  flex:0 0 auto;
+  padding:5px 8px;
+  border:1px solid #d7ded8;
+  border-radius:6px;
+  background:#fff;
+  font-size:9px;
+}
+
+/* User-upload photo form: compact, clean, no stretched controls */
+body.manage-body .photo-mode-content{margin-top:2px}
+body.manage-body .photo-group{
+  margin-bottom:12px;
+  padding:14px;
+  border:1px solid #dce2dc;
+  background:#fff;
+}
+body.manage-body .photo-group-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding-bottom:10px;
+  margin-bottom:12px;
+  border-bottom:1px solid #e7ebe7;
+}
+body.manage-body .photo-group-head div{display:flex;align-items:center;gap:8px;min-width:0}
+body.manage-body .photo-group-head b{font-size:12px}
+body.manage-body .photo-group-head span{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:#7d8982;border:1px solid #dce2dc;padding:3px 5px;margin-left:0}
+body.manage-body .photo-group-head small{font-size:9px;color:#89948d;text-align:right}
+body.manage-body .photo-single{max-width:360px}
+body.manage-body .photo-card{
+  border:1px solid #dce2dc;
+  background:#fff;
+  box-shadow:none;
+}
+body.manage-body .photo-preview,
+body.manage-body .photo-grid .photo-preview{
+  height:auto;
+  aspect-ratio:4/3;
+  min-height:0;
+  background:#f3f5f2;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+body.manage-body .photo-preview img{width:100%;height:100%;object-fit:cover;display:block}
+body.manage-body .photo-preview span{font-size:9px;color:#8a958f}
+body.manage-body .photo-card-info{
+  min-height:0;
+  padding:10px 11px;
+  border-top:1px solid #e3e8e4;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+body.manage-body .photo-card-info>div:first-child{min-width:0}
+body.manage-body .photo-card-info b{font-size:9px}
+body.manage-body .photo-card-info small{display:block;margin-top:3px;font-size:8px;color:#89948d}
+body.manage-body .photo-card-info .row-actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+body.manage-body .upload-btn{
+  min-height:30px;
+  padding:0 9px;
+  border:1px solid #cbd5ce;
+  border-radius:5px;
+  background:#fff;
+  color:#26362e;
+  font-size:9px;
+  font-weight:700;
+}
+body.manage-body .cover-choice{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 10px;
+  border-top:1px solid #e7ebe7;
+  font-size:8px;
+  color:#68756e;
+}
+body.manage-body .photo-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+}
+body.manage-body .photo-grid .photo-card-info{display:block}
+body.manage-body .photo-grid .photo-card-info .row-actions{margin-top:8px}
+body.manage-body .helper{font-size:9px;line-height:1.5}
+
+/* Floating save action */
+body.manage-body .manage-floating-save{
+  position:fixed;
+  right:24px;
+  bottom:24px;
+  z-index:150;
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1px solid #17241f;
+  border-radius:50%;
+  background:#17241f;
+  color:#fff;
+  box-shadow:0 10px 28px rgba(23,36,31,.18);
+  cursor:pointer;
+}
+body.manage-body .manage-floating-save:hover{background:#24372f}
+body.manage-body .manage-floating-save:disabled{opacity:.65;cursor:wait}
+body.manage-body .manage-floating-save svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+body.manage-body .manage-floating-save[aria-busy="true"] svg{animation:manageSavePulse .9s ease-in-out infinite}
+@keyframes manageSavePulse{50%{transform:scale(.86);opacity:.65}}
+
+@media(max-width:760px){
+  body.manage-body .photo-group{padding:12px}
+  body.manage-body .photo-group-head{display:block}
+  body.manage-body .photo-group-head small{display:block;margin-top:5px;text-align:left}
+  body.manage-body .photo-single{max-width:none}
+  body.manage-body .photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  body.manage-body .photo-grid .photo-preview{aspect-ratio:4/3}
+  body.manage-body .manage-floating-save{right:16px;bottom:16px;width:46px;height:46px}
+}
