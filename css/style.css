@@ -1433,11 +1433,21 @@ body.admin-body{
 }
 body.admin-body .admin-layout{min-height:100vh;display:grid;grid-template-columns:248px minmax(0,1fr)}
 body.admin-body .admin-sidebar{
-  position:sticky;top:0;height:100vh;z-index:90;
+  position:sticky;top:0;z-index:90;
+  min-height:100vh;height:auto;
+  max-height:100vh;overflow-y:auto;
   padding:24px 14px 16px;
   background:#14231d;color:#eef2ef;
   border-right:1px solid #293a32;
+  box-sizing:border-box;
+  scrollbar-width:thin;
+  scrollbar-color:#395046 transparent;
 }
+body.admin-body .admin-sidebar::-webkit-scrollbar{width:5px}
+body.admin-body .admin-sidebar::-webkit-scrollbar-track{background:transparent}
+body.admin-body .admin-sidebar::-webkit-scrollbar-thumb{background:#395046;border-radius:10px}
+body.admin-body .admin-sidebar nav{min-height:max-content}
+body.admin-body .admin-sidebar-bottom{margin-top:18px}
 body.admin-body .admin-brand{padding:4px 14px 25px;margin:0 0 22px;border-bottom:1px solid #304139}
 body.admin-body .admin-brand a{display:block;font-size:15px;letter-spacing:.22em;font-weight:700}
 body.admin-body .admin-brand span{display:block;margin-top:7px;color:#9eaaa4;font-size:8px;letter-spacing:.18em}
