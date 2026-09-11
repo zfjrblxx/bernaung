@@ -1,6 +1,14 @@
--- BERNAUNG / MANAGE SAVE FIX
--- Jalankan file ini di Supabase SQL Editor setelah schema/migrasi Manage yang ada.
--- Memastikan RPC Save memakai kolom music_url, bukan kolom music.
+-- BERNAUNG — MANAGE SAVE FIX
+-- Jalankan setelah tabel orders + default_photo_sets/default_photo_items tersedia.
+-- Tidak menggunakan tabel legacy default_photos.
+
+alter table public.orders add column if not exists love_story jsonb not null default '[]'::jsonb;
+alter table public.orders add column if not exists schedules jsonb not null default '[]'::jsonb;
+alter table public.orders add column if not exists accounts jsonb not null default '[]'::jsonb;
+alter table public.orders add column if not exists notes text;
+alter table public.orders add column if not exists photo_mode text;
+alter table public.orders add column if not exists cover_photo_index integer;
+alter table public.orders add column if not exists template_change_count integer not null default 0;
 
 create or replace function public.update_manage_invitation(p_manage_id text,p_secret_code text,p_data jsonb)
 returns jsonb language plpgsql security definer set search_path=public as $$
@@ -23,11 +31,25 @@ begin
   end if;
 
   if p_data ? 'photoMode' then
-    next_photo_mode:=p_data->>'photoMode';
-    if next_photo_mode <> 'own'
-       and (next_photo_mode !~ '^[0-9a-fA-F-]{36}$'
-            or not exists(select 1 from public.default_photo_sets where id=next_photo_mode::uuid and active)) then
-      raise exception 'Paket foto default tidak tersedia';
+    next_photo_mode:=trim(p_data->>'photoMode');
+
+    if next_photo_mode in ('default1','default2') then
+      select id::text into next_photo_mode
+      from public.default_photo_sets
+      where set_key=next_photo_mode and active=true
+      limit 1;
+
+      if next_photo_mode is null then
+        raise exception 'Paket foto default tidak tersedia';
+      end if;
+    elsif next_photo_mode <> 'own' then
+      if next_photo_mode !~ '^[0-9a-fA-F-]{36}$'
+         or not exists(
+           select 1 from public.default_photo_sets
+           where id=next_photo_mode::uuid and active
+         ) then
+        raise exception 'Paket foto default tidak tersedia';
+      end if;
     end if;
   end if;
 
@@ -56,7 +78,7 @@ begin
     schedules=case when p_data ? 'schedules' then p_data->'schedules' else schedules end,
     accounts=case when p_data ? 'accounts' then p_data->'accounts' else accounts end,
     notes=case when p_data ? 'notes' then p_data->>'notes' else notes end,
-    photo_mode=case when p_data ? 'photoMode' then p_data->>'photoMode' else photo_mode end,
+    photo_mode=case when p_data ? 'photoMode' then next_photo_mode else photo_mode end,
     cover_photo_index=case when p_data ? 'coverPhotoIndex' then (p_data->>'coverPhotoIndex')::integer else cover_photo_index end,
     template_id=case when p_data ? 'templateId' then (p_data->>'templateId')::integer else template_id end,
     template_name=coalesce(p_data->>'templateName',template_name),
