@@ -23,7 +23,18 @@ function formatPrice(n){return n===null||n===undefined||n===''?'':new Intl.Numbe
 window.BERNAUNG_PRICE=null;
 window.BernaungPriceReady=(async()=>{let price=null;if(supabaseReady()){try{const {data,error}=await supabaseClient.rpc('get_invitation_price');if(!error&&Number(data)>0)price=Number(data)}catch(e){console.warn('Harga belum tersedia.',e)}}window.BERNAUNG_PRICE=price;document.querySelectorAll('[data-price]').forEach(el=>el.textContent=price?formatPrice(price):'');document.dispatchEvent(new CustomEvent('bernaung:price-ready',{detail:{price}}));return price})();
 function renderCards(el,list=templates.slice(0,6)){if(!el)return;el.innerHTML=list.map(t=>`<article class="template-card"><div class="template-thumb ${t.url?'real-template-thumb':''}">${t.url?`<iframe src="${t.url}" title="Preview ${esc(t.name)}" loading="lazy"></iframe>`:`<div><span>${esc(t.cat.toUpperCase())}</span><strong>${esc(t.name)}</strong><span>BERNAUNG</span></div>`}</div><div class="template-info"><b>${esc(t.name)}</b><small data-price>${formatPrice(window.BERNAUNG_PRICE)}</small></div></article>`).join('');window.BernaungPriceReady?.then(p=>el.querySelectorAll('[data-price]').forEach(x=>x.textContent=formatPrice(p)))}
+async function checkPublicMaintenance(){
+  if(!supabaseReady()||document.body.classList.contains('admin-body'))return;
+  try{
+    const {data,error}=await supabaseClient.rpc('get_public_site_status');
+    if(error||!data?.maintenance)return;
+    document.documentElement.classList.add('maintenance-mode');
+    document.body.innerHTML=`<main class="maintenance-page"><div class="maintenance-inner"><span class="eyebrow">BERNAUNG</span><h1>Website sedang dipelihara.</h1><p>${esc(data.message||'Bernaung sedang melakukan pemeliharaan. Silakan kembali beberapa saat lagi.')}</p></div></main>`;
+  }catch(e){console.warn('Status maintenance tidak dapat dimuat.',e)}
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
+ checkPublicMaintenance();
  renderCards(document.getElementById('homeTemplates'));
  const menu=document.querySelector('.menu'),nav=document.querySelector('.nav nav');
  if(menu&&nav){menu.addEventListener('click',()=>{const open=nav.classList.toggle('mobile-open');menu.setAttribute('aria-expanded',String(open));menu.textContent=open?'×':'☰'});nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('mobile-open');menu.setAttribute('aria-expanded','false');menu.textContent='☰'}));}

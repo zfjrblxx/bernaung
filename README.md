@@ -319,3 +319,8 @@ Bernaung saat ini memiliki fondasi utama untuk:
 - Clean public URLs.
 
 README ini mengikuti kondisi project pada baseline `bernaung-main-v6-gas`.
+
+
+## Developer
+
+Developer workspace saat ini mencakup Harga Undangan, Pembayaran, WhatsApp, Notif Sudah 14 Hari Setelah Acara, dan Maintenance Web.

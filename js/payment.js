@@ -1,12 +1,28 @@
 (async function(){
   const form=document.getElementById('paymentForm'); if(!form)return;
+  const fmt=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
   const price=await (window.BernaungPriceReady||Promise.resolve(window.BERNAUNG_PRICE));
-  const amountInput=form.querySelector('[name="amount"]'); if(amountInput){amountInput.value=price??'';amountInput.min=price||'';amountInput.max=price||'';amountInput.readOnly=!price}
-  document.querySelectorAll('[data-price]').forEach(el=>el.textContent=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(price));
+  const amountInput=form.querySelector('[name="amount"]');
+  if(amountInput){amountInput.value=price??'';amountInput.min=price||'';amountInput.max=price||'';amountInput.readOnly=!price}
+  document.querySelectorAll('[data-price]').forEach(el=>el.textContent=price?fmt(price):'');
+
+  let checkout={payment_methods:[],qris_url:'',admin_whatsapp:''};
+  if(supabaseReady()){
+    try{const {data,error}=await supabaseClient.rpc('get_checkout_settings');if(error)throw error;checkout=data||checkout}catch(e){console.error('Gagal memuat pengaturan pembayaran.',e)}
+  }
+  const methods=Array.isArray(checkout.payment_methods)?checkout.payment_methods.filter(x=>x&&x.name&&x.number):[];
+  const methodWrap=document.getElementById('checkoutPaymentMethods');
+  const select=document.getElementById('paymentMethodSelect');
+  if(methodWrap)methodWrap.innerHTML=methods.length?methods.map(x=>`<div class="pay-method"><b>${esc(x.name)}</b><strong>${esc(x.number)}</strong><span>a.n. ${esc(x.holder||'Bernaung')}</span></div>`).join(''):'<div class="notice">Metode pembayaran belum tersedia. Silakan hubungi admin.</div>';
+  if(select)select.innerHTML=methods.length?methods.map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join(''):'<option value="">Belum tersedia</option>';
+  const qris=document.getElementById('checkoutQris');
+  if(qris&&checkout.qris_url)qris.innerHTML=`<div class="qris-block"><span class="eyebrow">QRIS</span><img src="${esc(checkout.qris_url)}" alt="QRIS pembayaran Bernaung"><p>Scan QRIS untuk melakukan pembayaran.</p></div>`;
+
   form.addEventListener('submit',async e=>{
     e.preventDefault(); const d=getData(),fd=new FormData(form); const buyer=String(fd.get('buyer')||'').trim(),method=String(fd.get('method')||'').trim(),amount=Number(fd.get('amount')||0),proof=fd.get('proof'),note=String(fd.get('note')||'').trim();
     if(!price){alert('Harga undangan belum tersedia. Silakan coba lagi beberapa saat.');return}
-    if(amount!==price){alert('Nominal pembayaran harus '+new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(price)+'.');return}
+    if(!methods.length||!method){alert('Metode pembayaran belum tersedia. Silakan hubungi admin.');return}
+    if(amount!==price){alert('Nominal pembayaran harus '+fmt(price)+'.');return}
     if(!(proof instanceof File)||!proof.size){alert('Pilih bukti pembayaran terlebih dahulu.');return}
     const button=form.querySelector('button[type="submit"]'),original=button?.textContent;if(button){button.disabled=true;button.textContent='Mengirim…'}
     try{

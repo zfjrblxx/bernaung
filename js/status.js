@@ -6,6 +6,9 @@
   const token = params.get('token') || getData().customerToken || '';
   let timer = null;
   let lastStatus = null;
+  let adminWhatsapp = '';
+  if(supabaseReady()){try{const {data}=await supabaseClient.rpc('get_checkout_settings');adminWhatsapp=String(data?.admin_whatsapp||'')}catch(e){}}
+  const waUrl=()=>adminWhatsapp?'https://wa.me/'+adminWhatsapp.replace(/\D/g,''):'https://wa.me/';
 
   function escHtml(v){ return esc(v); }
   function abs(path){ return path ? new URL(path.replace(/^\//,''), location.origin + '/').href : ''; }
@@ -16,7 +19,7 @@
       <h1>Menunggu pemeriksaan admin.</h1>
       <p class="muted">Bukti pembayaran sudah dikirim. Admin akan memeriksa pembayaran sebelum undangan diterbitkan.</p>
       <div class="notice"><b>Status: Menunggu Admin ACC</b><br>Halaman ini akan memeriksa status secara otomatis.</div>
-      <div class="notice status-warning-note"><b>Jangan refresh atau menutup halaman ini.</b><br>Jika mengalami masalah, <a href="https://wa.me/?text=${encodeURIComponent('Halo Admin Bernaung, saya mengalami masalah saat pembayaran.')}" target="_blank" rel="noopener">hubungi admin →</a></div>
+      <div class="notice status-warning-note"><b>Jangan refresh atau menutup halaman ini.</b><br>Jika mengalami masalah, <a href="${waUrl()}?text=${encodeURIComponent('Halo Admin Bernaung, saya mengalami masalah saat pembayaran.')}" target="_blank" rel="noopener">hubungi admin →</a></div>
       <div class="success-actions" style="margin-top:18px"><a class="btn btn-light" href="/">Kembali ke Beranda</a></div>`;
   }
 
@@ -26,7 +29,7 @@
       <h1>Pembayaran belum disetujui.</h1>
       <p class="muted">Admin menolak bukti pembayaran. Periksa alasan di bawah lalu kirim ulang pembayaran.</p>
       <div class="notice"><b>Alasan admin</b><br>${escHtml(d.payment_reject_reason || 'Admin belum memberikan alasan.')}</div>
-      <div class="success-actions" style="margin-top:18px"><a class="btn btn-dark" href="/pembayaran">Kirim ulang</a><a class="btn btn-light" href="https://wa.me/" target="_blank">Hubungi admin</a></div>`;
+      <div class="success-actions" style="margin-top:18px"><a class="btn btn-dark" href="/pembayaran">Kirim ulang</a><a class="btn btn-light" href="${waUrl()}" target="_blank">Hubungi admin</a></div>`;
   }
 
   function renderApproved(d){
