@@ -106,7 +106,7 @@ begin
     bride_father=coalesce(p_data->>'brideFather',bride_father), bride_mother=coalesce(p_data->>'brideMother',bride_mother),
     event_type=coalesce(p_data->>'eventType',event_type), event_date=case when p_data ? 'date' then nullif(p_data->>'date','')::date else event_date end,
     event_time=coalesce(p_data->>'time',event_time), venue=coalesce(p_data->>'venue',venue), address=coalesce(p_data->>'address',address),
-    maps_url=coalesce(p_data->>'maps',maps_url), whatsapp=coalesce(p_data->>'whatsapp',whatsapp), music_url=coalesce(p_data->>'music',music),
+    maps_url=coalesce(p_data->>'maps',maps_url), whatsapp=coalesce(p_data->>'whatsapp',whatsapp), music_url=coalesce(p_data->>'music',music_url),
     gift=coalesce(p_data->>'gift',gift), photos=case when p_data ? 'photos' then p_data->'photos' else photos end,
     photo_source=case when p_data ? 'photoSource' then coalesce(nullif(p_data->>'photoSource',''),'default') else photo_source end,
     love_story=case when p_data ? 'loveStory' then p_data->'loveStory' else love_story end,
