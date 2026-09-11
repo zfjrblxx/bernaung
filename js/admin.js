@@ -57,9 +57,10 @@ function paymentRow(d){
   const status=d.status||d.paymentStatus||'pending';
   const manageUrl=status==='approved' && d.manage_id?abs('/m/'+d.manage_id):'';
   return `<div class="admin-table-row order-row">
-    <div class="order-pair"><span>Pasangan</span><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong><small>${esc(d.buyer_name||d.paymentName||'-')}</small></div>
-    <div class="order-theme"><span>Tema</span><strong>${esc(d.template_name||d.templateName||'-')}</strong></div>
-    <div class="order-status"><span>Status</span>${statusBadge(status)}</div>
+    <div class="order-summary" data-order-toggle tabindex="0" role="button" aria-expanded="false">
+      <div class="order-pair"><span>Pasangan</span><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong></div>
+      <div class="order-status"><span>Status</span>${statusBadge(status)}</div>
+    </div>
     <div class="order-actions"><span>Aksi</span><div class="order-action-buttons"><button class="small-btn" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageUrl?`<a class="manage-url-btn" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:`<span class="manage-unavailable">Belum tersedia</span>`}<button type="button" class="delete-order-btn" data-delete-order="${esc(d.id||'')}">Hapus</button></div></div>
   </div>`
 }
@@ -221,8 +222,18 @@ function bindDeveloper(){
 async function loadSettings(){await loadDeveloperSettings()}
 async function savePrice(){const input=document.getElementById('devPriceInput');if(input)await saveDeveloperSetting('invitation_price',String(Number(input.value||0)),'Harga undangan berhasil disimpan.')}
 function bind(){
-  document.querySelectorAll('[data-payment-detail]').forEach(b=>b.onclick=()=>openModal(b.dataset.paymentDetail));
-  document.querySelectorAll('[data-delete-order]').forEach(b=>b.onclick=()=>deleteOrder(b.dataset.deleteOrder));
+  document.querySelectorAll('[data-order-toggle]').forEach(el=>{
+    const toggle=()=>{
+      const row=el.closest('.order-row');
+      if(!row)return;
+      const expanded=row.classList.toggle('is-expanded');
+      el.setAttribute('aria-expanded',expanded?'true':'false');
+    };
+    el.onclick=toggle;
+    el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}};
+  });
+  document.querySelectorAll('[data-payment-detail]').forEach(b=>b.onclick=e=>{e.stopPropagation();openModal(b.dataset.paymentDetail)});
+  document.querySelectorAll('[data-delete-order]').forEach(b=>b.onclick=e=>{e.stopPropagation();deleteOrder(b.dataset.deleteOrder)});
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchSection(b.dataset.go));
 }
 function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template',settings:'Pengaturan',media:'Media','dev-price':'Harga Undangan','dev-payment':'Pembayaran','dev-whatsapp':'WhatsApp','dev-reminder':'Notif Sudah 14 Hari Setelah Acara','dev-maintenance':'Maintenance Web'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open')}
