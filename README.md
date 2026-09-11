@@ -324,3 +324,6 @@ README ini mengikuti kondisi project pada baseline `bernaung-main-v6-gas`.
 ## Developer
 
 Developer workspace saat ini mencakup Harga Undangan, Pembayaran, WhatsApp, Notif Sudah 14 Hari Setelah Acara, dan Maintenance Web.
+
+### Manage music RPC fix
+Jika halaman Manage menampilkan error `column "music" does not exist`, jalankan `supabase-manage-music-fix.sql` sekali di Supabase. Migration ini memastikan RPC membaca kolom `orders.music_url` dan mengembalikannya sebagai field JSON `music`.
