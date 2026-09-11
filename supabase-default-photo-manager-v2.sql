@@ -143,8 +143,14 @@ begin
  select exists(select 1 from public.orders where manage_id=p_manage_id and status='approved' and secret_code_plain=upper(trim(p_secret_code)) and p_data ? 'templateId' and (p_data->>'templateId')::integer is distinct from template_id) into changing_template;
  if changing_template and (select template_change_count from public.orders where manage_id=p_manage_id) >= 2 then raise exception 'Kesempatan penggantian tema sudah habis'; end if;
  if p_data ? 'photoMode' then
-   next_photo_mode:=p_data->>'photoMode';
-   if next_photo_mode <> 'own' and (next_photo_mode !~ '^[0-9a-fA-F-]{36}$' or not exists(select 1 from public.default_photo_sets where id=next_photo_mode::uuid and active)) then raise exception 'Paket foto default tidak tersedia'; end if;
+   next_photo_mode:=trim(p_data->>'photoMode');
+   -- UI boleh mengirim set_key (default1/default2) maupun UUID paket.
+   if next_photo_mode in ('default1','default2') then
+     select id::text into next_photo_mode from public.default_photo_sets where set_key=next_photo_mode and active=true limit 1;
+     if next_photo_mode is null then raise exception 'Paket foto default tidak tersedia'; end if;
+   elsif next_photo_mode <> 'own' then
+     if next_photo_mode !~ '^[0-9a-fA-F-]{36}$' or not exists(select 1 from public.default_photo_sets where id=next_photo_mode::uuid and active) then raise exception 'Paket foto default tidak tersedia'; end if;
+   end if;
  end if;
  update public.orders set
  groom=coalesce(p_data->>'groom',groom), bride=coalesce(p_data->>'bride',bride), groom_nickname=coalesce(p_data->>'groomNickname',groom_nickname), bride_nickname=coalesce(p_data->>'brideNickname',bride_nickname), groom_instagram=coalesce(p_data->>'groomInstagram',groom_instagram), bride_instagram=coalesce(p_data->>'brideInstagram',bride_instagram),
@@ -156,7 +162,7 @@ begin
  photos=case when p_data ? 'photos' then p_data->'photos' else photos end,love_story=case when p_data ? 'loveStory' then p_data->'loveStory' else love_story end,
  schedules=case when p_data ? 'schedules' then p_data->'schedules' else schedules end,accounts=case when p_data ? 'accounts' then p_data->'accounts' else accounts end,
  notes=case when p_data ? 'notes' then p_data->>'notes' else notes end,
- photo_mode=case when p_data ? 'photoMode' then p_data->>'photoMode' else photo_mode end,
+ photo_mode=case when p_data ? 'photoMode' then next_photo_mode else photo_mode end,
  cover_photo_index=case when p_data ? 'coverPhotoIndex' then (p_data->>'coverPhotoIndex')::integer else cover_photo_index end,
  template_id=case when p_data ? 'templateId' then (p_data->>'templateId')::integer else template_id end,
  template_name=coalesce(p_data->>'templateName',template_name),template_category=coalesce(p_data->>'templateCategory',template_category),template_url=coalesce(p_data->>'templateUrl',template_url),
