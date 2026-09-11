@@ -8,7 +8,14 @@ alter table public.site_settings
   add column if not exists maintenance boolean not null default false,
   add column if not exists reminder_enabled boolean not null default true,
   add column if not exists reminder_days integer not null default 14,
-  add column if not exists theme_change_limit integer not null default 2;
+  add column if not exists theme_change_limit integer not null default 2,
+  add column if not exists brand_name text not null default 'Bernaung',
+  add column if not exists brand_tagline text not null default 'Digital invitation, made personal.',
+  add column if not exists admin_email text not null default '',
+  add column if not exists seo_title text not null default 'Bernaung — Undangan Digital',
+  add column if not exists seo_description text not null default 'Undangan pernikahan digital yang rapi, personal, dan mudah dibagikan.',
+  add column if not exists seo_image text not null default '',
+  add column if not exists maintenance_message text not null default 'Bernaung sedang melakukan pemeliharaan. Silakan kembali beberapa saat lagi.';
 
 update public.site_settings
 set payment_methods = '[{"name":"BCA","number":"1234567890","holder":"Bernaung"},{"name":"DANA","number":"08xxxxxxxxxx","holder":"Bernaung"}]'::jsonb
@@ -54,7 +61,10 @@ select jsonb_build_object(
   'maintenance', maintenance,
   'reminder_enabled', reminder_enabled,
   'reminder_days', reminder_days,
-  'theme_change_limit', theme_change_limit
+  'theme_change_limit', theme_change_limit,
+  'brand_name',brand_name,'brand_tagline',brand_tagline,'admin_email',admin_email,
+  'seo_title',seo_title,'seo_description',seo_description,'seo_image',seo_image,
+  'maintenance_message',maintenance_message
 )
 from public.site_settings where key='general' and public.is_admin() limit 1;
 $$;
@@ -73,10 +83,13 @@ begin
     when 'payment_methods' then update public.site_settings set payment_methods=coalesce(p_value,'[]'::jsonb) where key='general';
     when 'admin_whatsapp' then update public.site_settings set admin_whatsapp=coalesce(p_value #>> '{}','') where key='general';
     when 'qris_url' then update public.site_settings set qris_url=coalesce(p_value #>> '{}','') where key='general';
-    when 'maintenance' then update public.site_settings set maintenance=coalesce((p_value #>> '{}')::boolean,false) where key='general';
+    when 'maintenance' then update public.site_settings set maintenance=coalesce((p_value->>'enabled')::boolean,false),maintenance_message=coalesce(p_value->>'message','') where key='general';
     when 'reminder_enabled' then update public.site_settings set reminder_enabled=coalesce((p_value #>> '{}')::boolean,true) where key='general';
     when 'reminder_days' then update public.site_settings set reminder_days=greatest(1,least(365,(p_value #>> '{}')::integer)) where key='general';
+    when 'reminder' then update public.site_settings set reminder_enabled=coalesce((p_value->>'enabled')::boolean,true),reminder_days=greatest(1,least(365,coalesce((p_value->>'days')::integer,14))) where key='general';
     when 'theme_change_limit' then update public.site_settings set theme_change_limit=greatest(0,least(100,(p_value #>> '{}')::integer)) where key='general';
+    when 'identity' then update public.site_settings set brand_name=coalesce(p_value->>'name','Bernaung'),brand_tagline=coalesce(p_value->>'tagline',''),admin_email=coalesce(p_value->>'email','') where key='general';
+    when 'seo' then update public.site_settings set seo_title=coalesce(p_value->>'title',''),seo_description=coalesce(p_value->>'description',''),seo_image=coalesce(p_value->>'image','') where key='general';
     else raise exception 'Developer setting tidak dikenal';
   end case;
   return public.get_developer_settings();

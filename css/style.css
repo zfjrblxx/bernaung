@@ -2234,3 +2234,26 @@ body.manage-body .manage-save-float svg{width:20px;height:20px;fill:none;stroke:
   body.manage-body .save-bar{right:16px!important;bottom:16px!important}
   body.manage-body .save-bar .manage-save-float{width:48px!important;height:48px!important;min-height:48px!important}
 }
+
+/* Developer settings */
+body.admin-body .admin-nav-group-label{padding:18px 18px 7px;color:#9aa59f;font-size:8px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;border-top:1px solid rgba(255,255,255,.08);margin-top:8px}
+body.admin-body .developer-card{max-width:900px}
+body.admin-body .developer-form{display:grid;gap:16px;padding:24px 28px}
+body.admin-body .developer-form label{display:grid;gap:8px;color:#52615a;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+body.admin-body .developer-form input,body.admin-body .developer-form textarea{width:100%;min-height:46px;border:1px solid #d5ddd7;background:#fbfcfa;padding:12px 13px;font:400 12px/1.5 'DM Sans',sans-serif;color:var(--ink);text-transform:none;letter-spacing:0}
+body.admin-body .developer-form textarea{min-height:100px;resize:vertical}
+body.admin-body .developer-help{font-size:10px;color:#7b8780;line-height:1.6;margin-top:-8px}
+body.admin-body .developer-check{display:flex!important;grid-template-columns:none!important;align-items:center;gap:10px!important;text-transform:none!important;letter-spacing:0!important;font-size:12px!important}
+body.admin-body .developer-check input{width:16px;height:16px;min-height:16px;margin:0}
+body.admin-body .developer-payment-row{display:grid;grid-template-columns:1fr 1.2fr 1fr auto;gap:10px;padding:16px;border:1px solid #dfe5e0;background:#fff;align-items:end}
+body.admin-body .developer-payment-row label{font-size:9px}
+body.admin-body .developer-payment-row .small-btn{min-height:42px}
+body.admin-body .developer-preview{min-height:80px;border:1px dashed #d4ddd7;display:flex;align-items:center;justify-content:center;padding:14px;color:#87928c;font-size:10px}
+body.admin-body .developer-preview img{display:block;max-width:220px;max-height:220px;object-fit:contain}
+body.admin-body .developer-actions{display:flex;gap:10px;flex-wrap:wrap}
+body.admin-body .danger-outline{border-color:#d8c2be!important;color:#8f4038!important;background:#fff!important}
+body.admin-body .developer-reminder-list{border-top:1px solid #e1e6e2;padding:0 28px 22px}
+body.admin-body .developer-reminder-head{padding:18px 0 10px;font-size:11px;font-weight:700;color:#405149}
+body.admin-body .developer-reminder-item{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:13px 0;border-top:1px solid #edf0ed}
+body.admin-body .developer-reminder-item strong{display:block;font-size:11px}.developer-reminder-item small{display:block;margin-top:4px;color:#8a958f;font-size:9px}
+@media(max-width:700px){body.admin-body .developer-form{padding:20px 16px}body.admin-body .developer-payment-row{grid-template-columns:1fr}.developer-reminder-list{padding-left:16px!important;padding-right:16px!important}.developer-reminder-item{align-items:flex-start;flex-direction:column;gap:8px}}
