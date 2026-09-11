@@ -58,20 +58,3 @@ document.addEventListener('DOMContentLoaded',()=>{
  ['Kalau ada masalah, harus menghubungi siapa?','Kamu bisa menghubungi admin Bernaung melalui kontak yang tersedia di website.']
  ];let shown=7;const render=()=>{faq.innerHTML=items.slice(0,shown).map(x=>`<details><summary>${esc(x[0])}</summary><p>${esc(x[1])}</p></details>`).join('');const more=document.getElementById('faqLoadMore');if(more){more.textContent=shown<items.length?'Lihat selengkapnya →':'Tampilkan lebih sedikit ↑';more.hidden=false}};render();document.getElementById('faqLoadMore')?.addEventListener('click',()=>{shown=shown<items.length?Math.min(shown+7,items.length):7;render();if(shown===7)faq.closest('.faq-section')?.scrollIntoView({behavior:'smooth',block:'start'})})}
 });
-
-
-/* Developer website status — keep admin/manage/status accessible during maintenance. */
-(async()=>{
-  if(!supabaseReady()) return;
-  const path=location.pathname.replace(/\.html$/,'');
-  const excluded=['/admin','/admin-dashboard','/m'];
-  if(excluded.some(x=>path===x||path.startsWith(x+'/')) || path==='/status') return;
-  try{
-    const {data,error}=await supabaseClient.rpc('get_public_site_status');
-    if(error||!data?.maintenance) return;
-    const overlay=document.createElement('div');
-    overlay.className='maintenance-overlay';
-    overlay.innerHTML='<div class="maintenance-box"><span class="eyebrow">BERNAUNG</span><h1>Website sedang diperbaiki.</h1><p>Kami sedang melakukan perbaikan agar Bernaung tetap nyaman digunakan. Silakan kembali beberapa saat lagi.</p><a class="btn btn-dark" href="/">Kembali ke Beranda</a></div>';
-    document.body.appendChild(overlay);
-  }catch(e){console.warn('Status website belum tersedia.',e)}
-})();
