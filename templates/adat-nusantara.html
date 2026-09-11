@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ayu & Bagas — Undangan Pernikahan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBF5E8;
+  --ink:#7A1F2B;
+  --ink-deep:#4A1119;
+  --gold:#B8860B;
+  --muted:#8B7355;
+  --line:#E3D4B0;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink-deep);font-family:'Work Sans',sans-serif;line-height:1.65;overflow-x:hidden;}
+.serif{font-family:'Marcellus',serif;}
+.app{max-width:420px;margin:0 auto;position:relative;padding-bottom:64px;}
+img{max-width:100%;display:block;}
+button{font-family:inherit;}
+
+.cover{position:fixed;inset:0;z-index:100;background:var(--ink);color:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .4s ease, visibility .4s ease;}
+.cover.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+.cover .to{font-size:12px;letter-spacing:1.5px;color:var(--gold);margin-bottom:18px;}
+.cover .names{font-family:'Marcellus',serif;font-size:30px;line-height:1.35;}
+.cover .amp{display:block;font-style:italic;color:var(--gold);font-size:15px;margin:6px 0;}
+.cover-btn{margin-top:34px;padding:13px 28px;background:transparent;border:1px solid var(--gold);color:var(--gold);font-size:13.5px;letter-spacing:.5px;cursor:pointer;}
+
+.motif-strip{height:14px;background-image:repeating-linear-gradient(135deg,var(--ink) 0 4px,transparent 4px 10px);opacity:.7;}
+.motif-strip.bottom{transform:scaleY(-1);}
+
+.hero{padding:44px 24px 36px;text-align:center;background:var(--ink);color:var(--bg);position:relative;}
+.corner{position:absolute;width:38px;height:38px;opacity:.55;}
+.corner svg{width:100%;height:100%;}
+.corner.tl{top:14px;left:14px;}
+.corner.tr{top:14px;right:14px;transform:scaleX(-1);}
+.hero .kicker{font-size:12px;letter-spacing:2px;color:var(--gold);margin-bottom:16px;}
+.hero .names{font-family:'Marcellus',serif;font-size:34px;line-height:1.3;}
+.hero .amp{display:block;color:var(--gold);font-size:16px;margin:6px 0;font-style:italic;font-family:serif;}
+.hero .quote{margin-top:20px;font-size:12px;color:rgba(251,245,232,.7);font-style:italic;max-width:280px;margin-left:auto;margin-right:auto;}
+
+.section{padding:34px 24px;border-bottom:1px solid var(--line);scroll-margin-top:20px;}
+.section h2{font-family:'Marcellus',serif;font-size:19px;color:var(--ink);text-align:center;margin-bottom:18px;}
+.section h2 .ornament{display:block;font-size:11px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;font-family:'Work Sans',sans-serif;}
+.section p{font-size:13.5px;color:var(--muted);text-align:center;}
+
+.mempelai-card{text-align:center;margin-bottom:26px;}
+.mempelai-card:last-child{margin-bottom:0;}
+.mempelai-card .photo{width:96px;height:96px;border-radius:50%;background:var(--line);margin:0 auto 14px;border:2px solid var(--gold);}
+.mempelai-card .fullname{font-family:'Marcellus',serif;font-size:22px;color:var(--ink);}
+.mempelai-card .desc{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.6;}
+.mempelai-card .ig{display:inline-block;margin-top:8px;font-size:12px;color:var(--gold);border-bottom:1px solid var(--gold);}
+.and-divider{text-align:center;font-family:'Marcellus',serif;font-style:italic;color:var(--gold);font-size:16px;margin:6px 0 22px;}
+
+.acara-card{border:1px solid var(--gold);padding:22px;text-align:center;margin-bottom:16px;}
+.acara-card:last-child{margin-bottom:0;}
+.acara-card .nama-acara{font-family:'Marcellus',serif;font-size:18px;color:var(--ink);margin-bottom:12px;}
+.acara-card .tanggal{display:flex;justify-content:center;gap:14px;margin-bottom:10px;}
+.acara-card .tanggal div{text-align:center;}
+.acara-card .tanggal .n{font-family:'Marcellus',serif;font-size:22px;color:var(--ink);}
+.acara-card .tanggal .l{font-size:10px;color:var(--muted);letter-spacing:.5px;}
+.acara-card .jam,.acara-card .alamat{font-size:12.5px;color:var(--muted);}
+.acara-card .maps-btn{display:inline-block;margin-top:12px;padding:8px 18px;border:1px solid var(--ink);color:var(--ink);font-size:12px;}
+
+.story-item{display:flex;gap:14px;margin-bottom:20px;}
+.story-item:last-child{margin-bottom:0;}
+.story-item .photo{width:76px;height:76px;flex-shrink:0;background:var(--line);border:1px solid var(--gold);}
+.story-item .txt{text-align:left;}
+.story-item h4{font-family:'Marcellus',serif;font-size:15px;color:var(--ink);margin-bottom:4px;}
+.story-item p{text-align:left;font-size:12.5px;}
+
+.rundown-item{display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--line);text-align:left;}
+.rundown-item:first-child{border-top:none;}
+.rundown-item .jam{font-family:'Marcellus',serif;color:var(--ink);font-size:13.5px;min-width:70px;}
+.rundown-item .keg{font-size:12.5px;color:var(--muted);}
+
+.amplop-toggle{display:block;margin:0 auto;padding:10px 20px;border:1px solid var(--ink);background:none;color:var(--ink);font-size:13px;}
+.rekening-list{margin-top:16px;display:none;}
+.rekening-list.show{display:block;}
+.rek-card{background:#fff;border:1px solid var(--line);padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.rek-card .info{font-size:12.5px;text-align:left;}
+.rek-card .bank{font-weight:600;color:var(--ink);}
+.rek-card .no{color:var(--muted);}
+.rek-card button{border:1px solid var(--gold);background:none;color:var(--gold);font-size:11.5px;padding:6px 10px;}
+
+.rsvp-card{background:#fff;border:1px solid var(--line);padding:20px;margin-top:6px;}
+.rsvp-card label{display:block;font-size:11.5px;color:var(--muted);margin:12px 0 5px;}
+.rsvp-card label:first-child{margin-top:0;}
+.rsvp-card input,.rsvp-card textarea{width:100%;border:1px solid var(--line);padding:9px 10px;font-size:14px;background:var(--bg);font-family:inherit;}
+.rsvp-opt{display:flex;gap:8px;margin-top:8px;}
+.rsvp-opt label{flex:1;border:1px solid var(--line);text-align:center;padding:9px;font-size:13px;margin:0;cursor:pointer;}
+.rsvp-opt input{display:none;width:auto;}
+.btn{display:block;width:100%;margin-top:16px;padding:13px;background:var(--ink);color:var(--bg);border:none;font-size:14px;font-weight:600;letter-spacing:.3px;cursor:pointer;}
+
+.guest-msg{padding:12px 0;border-top:1px solid var(--line);text-align:left;}
+.guest-msg:first-child{border-top:none;}
+.guest-msg .name{font-weight:600;font-size:13.5px;color:var(--ink);}
+.guest-msg .txt{font-size:13px;color:var(--muted);margin-top:2px;}
+
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px;}
+.gallery div{aspect-ratio:1;background:var(--line);border:1px solid var(--gold);}
+
+footer{text-align:center;padding:26px 24px;font-size:11.5px;color:var(--muted);}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--ink);display:flex;justify-content:space-around;align-items:center;padding:10px 6px;z-index:50;}
+.bottom-nav a, .bottom-nav button{background:none;border:none;color:rgba(251,245,232,.6);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;}
+.bottom-nav svg{width:19px;height:19px;}
+.bottom-nav .music.playing{color:var(--gold);}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/public-invitation.js"></script>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="cover" id="cover">
+    <div class="to">UNDANGAN UNTUK<br><strong id="guestName">Budi</strong></div>
+    <div class="names">Ayu Lestari<span class="amp">&amp;</span>Bagas Prakoso</div>
+    <button class="cover-btn" onclick="bukaUndangan()">Buka Undangan</button>
+  </div>
+
+  <div id="beranda">
+    <div class="motif-strip"></div>
+    <div class="hero">
+      <div class="corner tl"><svg viewBox="0 0 40 40" fill="none" stroke="#B8860B" stroke-width="1.2"><path d="M2 2v14M2 2h14M2 8h6M8 2v6"/></svg></div>
+      <div class="corner tr"><svg viewBox="0 0 40 40" fill="none" stroke="#B8860B" stroke-width="1.2"><path d="M2 2v14M2 2h14M2 8h6M8 2v6"/></svg></div>
+      <div class="kicker">THE WEDDING OF</div>
+      <div class="names">Ayu Lestari<span class="amp">&amp;</span>Bagas Prakoso</div>
+      <div class="quote">"Tanpa mengurangi rasa hormat, kami mengundang Bapak/Ibu/Saudara/i untuk berkenan hadir dan memberi doa restu."</div>
+    </div>
+    <div class="motif-strip bottom"></div>
+  </div>
+
+  <div class="section" id="mempelai">
+    <h2><span class="ornament">✦</span>Kedua mempelai</h2>
+    <div class="mempelai-card">
+      <div class="photo"></div>
+      <div class="fullname">Ayu Lestari</div>
+      <div class="desc">Putri dari pasangan<br>Bapak Sutrisno &amp; Ibu Wulandari<br>Bogor, Jawa Barat</div>
+      <a class="ig" href="#">@ayulestari</a>
+    </div>
+    <div class="and-divider">&amp;</div>
+    <div class="mempelai-card">
+      <div class="photo"></div>
+      <div class="fullname">Bagas Prakoso</div>
+      <div class="desc">Putra dari pasangan<br>Bapak Hendra Prakoso &amp; Ibu Siti Aminah<br>Bogor, Jawa Barat</div>
+      <a class="ig" href="#">@bagasprakoso</a>
+    </div>
+  </div>
+
+  <div class="section" id="acara">
+    <h2><span class="ornament">✦</span>Waktu &amp; tempat</h2>
+    <div class="acara-card">
+      <div class="nama-acara">Akad Nikah</div>
+      <div class="tanggal">
+        <div><div class="n">Sabtu</div><div class="l">HARI</div></div>
+        <div><div class="n">14</div><div class="l">TANGGAL</div></div>
+        <div><div class="n">Feb</div><div class="l">2027</div></div>
+      </div>
+      <div class="jam">Pukul 08:00 – 10:00 WIB</div>
+      <div class="alamat">Kebun Raya Bogor, Jawa Barat</div>
+      <a href="#" class="maps-btn">Lihat lokasi di Maps</a>
+    </div>
+    <div class="acara-card">
+      <div class="nama-acara">Resepsi</div>
+      <div class="tanggal">
+        <div><div class="n">Sabtu</div><div class="l">HARI</div></div>
+        <div><div class="n">14</div><div class="l">TANGGAL</div></div>
+        <div><div class="n">Feb</div><div class="l">2027</div></div>
+      </div>
+      <div class="jam">Pukul 11:00 – 14:00 WIB</div>
+      <div class="alamat">Kebun Raya Bogor, Jawa Barat</div>
+      <a href="#" class="maps-btn">Lihat lokasi di Maps</a>
+    </div>
+  </div>
+
+  <div class="section" id="cerita">
+    <h2><span class="ornament">✦</span>Sebuah kisah</h2>
+    <div class="story-item">
+      <div class="photo"></div>
+      <div class="txt"><h4>Pertemuan pertama</h4><p>Kami bertemu pertama kali di sebuah acara kampus tahun 2019, awalnya cuma teman diskusi tugas.</p></div>
+    </div>
+    <div class="story-item">
+      <div class="photo"></div>
+      <div class="txt"><h4>Melangkah lebih jauh</h4><p>Enam tahun kemudian, kami memutuskan untuk melangkah lebih jauh dan membangun rumah tangga bersama.</p></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="ornament">✦</span>Susunan acara</h2>
+    <div class="rundown-item"><div class="jam">08.00</div><div class="keg">Kedatangan tamu &amp; persiapan</div></div>
+    <div class="rundown-item"><div class="jam">08.30</div><div class="keg">Akad nikah &amp; ijab kabul</div></div>
+    <div class="rundown-item"><div class="jam">11.00</div><div class="keg">Resepsi &amp; ramah tamu</div></div>
+    <div class="rundown-item"><div class="jam">14.00</div><div class="keg">Acara selesai</div></div>
+  </div>
+
+  <div class="section" id="galeri">
+    <h2><span class="ornament">✦</span>Galeri</h2>
+    <div class="gallery"><div></div><div></div><div></div><div></div><div></div></div>
+  </div>
+
+  <div class="section">
+    <h2><span class="ornament">✦</span>Tanda kasih</h2>
+    <p>Doa restu Bapak/Ibu adalah karunia yang berarti. Jika ingin memberi secara cashless, berikut rekeningnya.</p>
+    <button class="amplop-toggle" onclick="toggleRekening()">Tampilkan rekening</button>
+    <div class="rekening-list" id="rekeningList">
+      <div class="rek-card"><div class="info"><div class="bank">BCA</div><div class="no">1234567890 — a.n. Ayu Lestari</div></div><button onclick="alert('Disalin (demo)')">Salin</button></div>
+      <div class="rek-card"><div class="info"><div class="bank">Mandiri</div><div class="no">0987654321 — a.n. Bagas Prakoso</div></div><button onclick="alert('Disalin (demo)')">Salin</button></div>
+    </div>
+  </div>
+
+  <div class="section" id="rsvp">
+    <h2><span class="ornament">✦</span>Konfirmasi kehadiran</h2>
+    <div class="rsvp-card">
+      <label>Nama</label>
+      <input type="text" value="Budi" readonly>
+      <label>Apakah kamu akan hadir?</label>
+      <div class="rsvp-opt">
+        <label><input type="radio" name="rsvp" checked>Hadir</label>
+        <label><input type="radio" name="rsvp">Tidak hadir</label>
+      </div>
+      <label>Ucapan & doa</label>
+      <textarea rows="2" placeholder="Tulis ucapan untuk kedua mempelai..."></textarea>
+      <button class="btn" onclick="alert('RSVP terkirim (demo)')">Kirim RSVP</button>
+    </div>
+  </div>
+
+  <div class="section" style="border-bottom:none;">
+    <h2><span class="ornament">✦</span>Ucapan tamu</h2>
+    <div class="guest-msg"><div class="name">Dinda Rahma</div><div class="txt">Selamat menempuh hidup baru, semoga sakinah mawaddah warahmah.</div></div>
+    <div class="guest-msg"><div class="name">Yoga Aditama</div><div class="txt">Bahagia terus buat kalian berdua.</div></div>
+  </div>
+
+  <footer>Dibuat dengan Bernaung</footer>
+</div>
+
+<div class="bottom-nav">
+  <a href="#beranda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Beranda</a>
+  <a href="#mempelai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="8" r="2.6"/><path d="M3.5 20c.5-3.5 3-5.5 5.5-5.5s5 2 5.5 5.5M15 14.5c2 .1 4 1.7 4.5 5.5"/></svg>Mempelai</a>
+  <a href="#galeri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 15l-5-5-9 9"/></svg>Galeri</a>
+  <a href="#acara"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Acara</a>
+  <button class="music" id="musicBtn" onclick="toggleMusic()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Musik</button>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const tamu = params.get('to') || 'Budi';
+document.getElementById('guestName').textContent = tamu;
+
+function bukaUndangan(){
+  document.getElementById('cover').classList.add('hidden');
+  document.body.style.overflow='auto';
+  document.getElementById('musicBtn').classList.add('playing');
+}
+function toggleRekening(){
+  const list=document.getElementById('rekeningList');
+  const btn=document.querySelector('.amplop-toggle');
+  const show=list.classList.toggle('show');
+  btn.textContent=show?'Sembunyikan rekening':'Tampilkan rekening';
+}
+let playing=true;
+function toggleMusic(){
+  playing=!playing;
+  document.getElementById('musicBtn').classList.toggle('playing',playing);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+{"cleanUrls":true,"rewrites":[{"source":"/m/:id","destination":"/manage?id=:id"},{"source":"/:slug","destination":"/undangan?slug=:slug"}]}
