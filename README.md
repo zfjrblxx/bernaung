@@ -134,7 +134,7 @@ Konfigurasi routing tersedia di:
 
 ## Harga Undangan
 
-Harga default saat ini adalah **Rp58.000**, tetapi harga dapat diubah dari **Pengaturan Admin**.
+Harga undangan dikelola dari **Pengaturan Admin** dan dapat diubah untuk pesanan baru.
 
 Harga yang tersimpan di Settings digunakan untuk **pesanan baru**.
 
