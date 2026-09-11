@@ -1,4 +1,5 @@
 let currentPrice = null;
+let developerSettings = {payment_methods:[], admin_whatsapp:'', qris_url:'', maintenance:false, reminder_enabled:true, reminder_days:14, theme_change_limit:2};
 const TEMPLATE_DATA = [
   {id:1,name:'Minimal 01',category:'Minimal',url:''},
   {id:2,name:'Minimal 02',category:'Minimal',url:''},
@@ -54,14 +55,16 @@ async function loadOrders(){
 function paymentRow(d){
   const status=d.status||d.paymentStatus||'pending';
   const manageUrl=status==='approved' && d.manage_id?abs('/m/'+d.manage_id):'';
-  return `<div class="admin-table-row order-row">
-    <div class="order-pair"><span>Pasangan</span><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong><small>${esc(d.buyer_name||d.paymentName||'-')}</small></div>
-    <div class="order-theme"><span>Tema</span><strong>${esc(d.template_name||d.templateName||'-')}</strong></div>
-    <div class="order-status"><span>Status</span>${statusBadge(status)}</div>
-    <div class="order-actions"><span>Aksi</span><div class="order-action-buttons"><button class="small-btn" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageUrl?`<a class="manage-url-btn" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:`<span class="manage-unavailable">Belum tersedia</span>`}<button type="button" class="delete-order-btn" data-delete-order="${esc(d.id||'')}">Hapus</button></div></div>
-  </div>`
+  return `<article class="admin-order-item" data-order-id="${esc(d.id||'')}" tabindex="0">
+    <button type="button" class="admin-order-summary">
+      <span class="order-summary-main"><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong><small>${esc(d.template_name||d.templateName||'Tema belum dipilih')}</small></span>
+      <span class="order-summary-meta">${statusBadge(status)}<span class="order-chevron">→</span></span>
+    </button>
+    <div class="admin-order-detail" hidden>
+      <div class="order-detail-actions"><button class="small-btn" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageUrl?`<a class="manage-url-btn" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:''}<button type="button" class="delete-order-btn small-btn danger-small" data-delete-order="${esc(d.id||'')}">Hapus</button></div>
+    </div>
+  </article>`
 }
-
 function render(){
   const has=orders.length>0;
   const pending=orders.filter(x=>(x.status||x.paymentStatus)==='pending').length;
@@ -75,8 +78,7 @@ function render(){
   document.getElementById('ordersList').innerHTML=has?orders.map(paymentRow).join(''):'<div class="admin-empty">Belum ada pesanan.</div>';
   document.getElementById('customersList').innerHTML=has?orders.map(d=>`<div class="admin-customer"><div><span>Pasangan</span><strong>${esc(d.groom||'-')} &amp; ${esc(d.bride||'-')}</strong></div><div><span>WhatsApp</span><strong>${esc(d.whatsapp||'-')}</strong></div><div><span>Tema</span><strong>${esc(d.template_name||'-')}</strong></div></div>`).join(''):'<div class="admin-empty">Belum ada customer.</div>';
   document.getElementById('templatesList').innerHTML='<div class="template-stat-list">'+TEMPLATE_DATA.map(t=>`<div class="template-stat"><div><strong>${esc(t.name)}</strong><span>${esc(t.category)}</span></div><strong>${orders.filter(d=>Number(d.template_id)===t.id).length} pesanan</strong></div>`).join('')+'</div>';
-  const priceEl=document.getElementById('settingPriceValue'); if(priceEl)priceEl.textContent=money(currentPrice);
-  const priceInput=document.getElementById('settingPriceInput'); if(priceInput)priceInput.value=currentPrice??'';
+  const priceInput=document.getElementById('developerPriceInput'); if(priceInput)priceInput.value=currentPrice??'';
   bind();
 }
 
@@ -189,24 +191,44 @@ async function deleteOrder(id){
   }});
 }
 async function loadSettings(){
-  if(!supabaseReady())return;
-  try{const {data,error}=await supabaseClient.rpc('get_invitation_price');if(!error&&Number(data)>0){currentPrice=Number(data);render()}}catch(e){console.error(e)}
-}
-async function savePrice(){
-  const input=document.getElementById('settingPriceInput'); const value=Number(input?.value||0);
-  if(!Number.isInteger(value)||value<1000){showAdminNotice('Harga tidak valid','Masukkan harga undangan dalam rupiah yang benar.');return}
+  if(!supabaseReady()) return;
   try{
-    if(supabaseReady()){const {data,error}=await supabaseClient.rpc('set_invitation_price',{p_price:value});if(error)throw error;currentPrice=Number(data||value)}else currentPrice=value;
-    document.getElementById('settingPriceValue').textContent=money(currentPrice);
-    showAdminNotice('Harga berhasil diubah','Harga untuk pesanan baru sekarang '+money(currentPrice)+'. Pesanan lama tetap memakai harga saat dibuat.');
-  }catch(e){showAdminNotice('Gagal menyimpan harga',e.message||'Terjadi kesalahan.')}
+    const {data,error}=await supabaseClient.rpc('get_developer_settings');
+    if(error) throw error;
+    developerSettings={...developerSettings,...(data||{})};
+    currentPrice=Number(data?.invitation_price||0)||null;
+    syncDeveloperUI();
+    render();
+  }catch(e){console.error(e)}
 }
+function syncDeveloperUI(){
+  const price=document.getElementById('developerPriceInput'); if(price)price.value=currentPrice??'';
+  const limit=document.getElementById('themeLimitInput'); if(limit)limit.value=Number(developerSettings.theme_change_limit??2);
+  const wa=document.getElementById('adminWhatsappInput'); if(wa)wa.value=developerSettings.admin_whatsapp||'';
+  const mt=document.getElementById('maintenanceToggle'); if(mt)mt.checked=!!developerSettings.maintenance;
+  const rd=document.getElementById('reminderDaysInput'); if(rd)rd.value=Number(developerSettings.reminder_days||14);
+  const rt=document.getElementById('reminderToggle'); if(rt)rt.checked=developerSettings.reminder_enabled!==false;
+  renderPaymentMethods(); renderQris();
+}
+function showDevNotice(title,message){showAdminNotice(title,message)}
+async function saveDeveloperSetting(key,value){
+  if(!supabaseReady()){developerSettings[key]=value;syncDeveloperUI();return true}
+  const {data,error}=await supabaseClient.rpc('set_developer_setting',{p_key:key,p_value:value});
+  if(error) throw error; developerSettings={...developerSettings,...(data||{})}; syncDeveloperUI(); return true;
+}
+async function savePrice(){const value=Number(document.getElementById('developerPriceInput')?.value||0);if(!Number.isInteger(value)||value<1000){showDevNotice('Harga tidak valid','Masukkan harga undangan dalam rupiah yang benar.');return}try{await saveDeveloperSetting('invitation_price',value);currentPrice=value;render();showDevNotice('Harga berhasil diubah','Harga untuk pesanan baru sekarang '+money(value)+'. Pesanan lama tetap memakai harga saat dibuat.')}catch(e){showDevNotice('Gagal menyimpan harga',e.message||'Terjadi kesalahan.')}}
+function renderPaymentMethods(){const box=document.getElementById('paymentMethodsEditor');if(!box)return;const list=Array.isArray(developerSettings.payment_methods)?developerSettings.payment_methods:[];box.innerHTML=list.map((m,i)=>`<div class="payment-method-editor"><input data-pm="name" data-i="${i}" value="${esc(m.name||'')}" placeholder="BCA / DANA"><input data-pm="number" data-i="${i}" value="${esc(m.number||'')}" placeholder="Nomor rekening / e-wallet"><input data-pm="holder" data-i="${i}" value="${esc(m.holder||'')}" placeholder="a.n. Bernaung"><button type="button" class="text-btn danger-text" data-remove-pm="${i}">Hapus</button></div>`).join('')||'<div class="empty-inline">Belum ada metode pembayaran.</div>'}
+async function savePaymentMethods(list){await saveDeveloperSetting('payment_methods',list);showDevNotice('Pembayaran tersimpan','Metode pembayaran admin sudah diperbarui.')}
+function renderQris(){const box=document.getElementById('qrisPreview'),remove=document.getElementById('removeQris');if(!box)return;box.innerHTML=developerSettings.qris_url?`<img src="${esc(developerSettings.qris_url)}" alt="QRIS Admin">`:'<span>Belum ada QRIS</span>';remove?.classList.toggle('hidden',!developerSettings.qris_url)}
+async function uploadQris(file){if(!file)return;if(file.size>8*1024*1024){showDevNotice('QRIS terlalu besar','Ukuran QRIS maksimal 8 MB.');return}if(!supabaseReady()){showDevNotice('Supabase belum aktif','Upload QRIS membutuhkan Supabase aktif.');return}try{const ext=(file.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,'')||'png';const path=`admin/qris-${Date.now()}.${ext}`;const up=await supabaseClient.storage.from('admin-assets').upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;const {data:pub}=supabaseClient.storage.from('admin-assets').getPublicUrl(path);await saveDeveloperSetting('qris_url',pub.publicUrl);showDevNotice('QRIS tersimpan','QRIS admin sudah tersedia di halaman pembayaran.')}catch(e){showDevNotice('Upload QRIS gagal',e.message||'Terjadi kesalahan.')}}
+async function removeQris(){try{await saveDeveloperSetting('qris_url','');showDevNotice('QRIS dihapus','QRIS admin sudah dihapus dari pembayaran.')}catch(e){showDevNotice('Gagal menghapus QRIS',e.message||'Terjadi kesalahan.')}}
+function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template',settings:'Pengaturan',developer:'Developer'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open');if(name==='developer')syncDeveloperUI()}
+
 function bind(){
   document.querySelectorAll('[data-payment-detail]').forEach(b=>b.onclick=()=>openModal(b.dataset.paymentDetail));
   document.querySelectorAll('[data-delete-order]').forEach(b=>b.onclick=()=>deleteOrder(b.dataset.deleteOrder));
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchSection(b.dataset.go));
 }
-function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template',settings:'Pengaturan'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open')}
 
 document.getElementById('googleLogin')?.addEventListener('click',async()=>{if(!supabaseReady()){openAdminDialog({kicker:'KONFIGURASI',title:'Supabase belum aktif',message:'Isi Supabase URL dan publishable key di js/supabase.js terlebih dahulu.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden');return;}const {error}=await supabaseClient.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/admin-dashboard'}});if(error){openAdminDialog({kicker:'LOGIN ADMIN',title:'Google Login gagal',message:error.message||'Terjadi kesalahan saat login.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden')}});
 document.querySelectorAll('.admin-nav').forEach(b=>b.onclick=()=>switchSection(b.dataset.section));
@@ -218,6 +240,19 @@ document.getElementById('paymentModal')?.addEventListener('click',e=>{if(e.targe
 document.addEventListener('click',e=>{if(e.target.matches('[data-dialog-close],[data-dialog-cancel]')){closeAdminDialog();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAdminDialog();});
 document.getElementById('adminLogout')?.addEventListener('click',async()=>{if(supabaseReady())await supabaseClient.auth.signOut();location.href='/admin'});
+
+document.getElementById('saveDeveloperPrice')?.addEventListener('click',savePrice);
+document.getElementById('saveThemeLimit')?.addEventListener('click',async()=>{const v=Math.max(0,Math.min(100,Number(document.getElementById('themeLimitInput')?.value||0)));try{await saveDeveloperSetting('theme_change_limit',v);showDevNotice('Limit tema tersimpan','Limit penggantian tema default sekarang '+v+'×.')}catch(e){showDevNotice('Gagal menyimpan limit',e.message||'Terjadi kesalahan.')}});
+document.getElementById('saveAdminWhatsapp')?.addEventListener('click',async()=>{try{await saveDeveloperSetting('admin_whatsapp',String(document.getElementById('adminWhatsappInput')?.value||'').trim());showDevNotice('WhatsApp tersimpan','Nomor WhatsApp admin sudah diperbarui.')}catch(e){showDevNotice('Gagal menyimpan WhatsApp',e.message||'Terjadi kesalahan.')}});
+document.getElementById('saveReminder')?.addEventListener('click',async()=>{try{const days=Math.max(1,Math.min(365,Number(document.getElementById('reminderDaysInput')?.value||14)));developerSettings.reminder_enabled=!!document.getElementById('reminderToggle')?.checked;await saveDeveloperSetting('reminder_days',days);await saveDeveloperSetting('reminder_enabled',developerSettings.reminder_enabled);showDevNotice('Reminder tersimpan','Reminder akan ditampilkan '+days+' hari setelah tanggal acara.')}catch(e){showDevNotice('Gagal menyimpan reminder',e.message||'Terjadi kesalahan.')}});
+document.getElementById('maintenanceToggle')?.addEventListener('change',async e=>{try{await saveDeveloperSetting('maintenance',!!e.target.checked);showDevNotice('Status website diperbarui',e.target.checked?'Mode maintenance aktif.':'Website kembali aktif.')}catch(x){e.target.checked=!e.target.checked;showDevNotice('Gagal mengubah status',x.message||'Terjadi kesalahan.')}});
+document.getElementById('addPaymentMethod')?.addEventListener('click',async()=>{const list=Array.isArray(developerSettings.payment_methods)?[...developerSettings.payment_methods]:[];list.push({name:'',number:'',holder:'Bernaung'});await savePaymentMethods(list);renderPaymentMethods()});
+document.getElementById('paymentMethodsEditor')?.addEventListener('change',async e=>{const el=e.target.closest('[data-pm]');if(!el)return;const list=Array.isArray(developerSettings.payment_methods)?[...developerSettings.payment_methods]:[];const i=Number(el.dataset.i);list[i]={...(list[i]||{}),[el.dataset.pm]:el.value};try{await savePaymentMethods(list)}catch(x){showDevNotice('Gagal menyimpan pembayaran',x.message||'Terjadi kesalahan.')}});
+document.getElementById('paymentMethodsEditor')?.addEventListener('click',async e=>{const b=e.target.closest('[data-remove-pm]');if(!b)return;const i=Number(b.dataset.removePm),list=Array.isArray(developerSettings.payment_methods)?[...developerSettings.payment_methods]:[];list.splice(i,1);try{await savePaymentMethods(list)}catch(x){showDevNotice('Gagal menghapus metode',x.message||'Terjadi kesalahan.')}});
+document.getElementById('qrisInput')?.addEventListener('change',e=>uploadQris(e.target.files?.[0]));
+document.getElementById('removeQris')?.addEventListener('click',removeQris);
+document.addEventListener('click',e=>{const item=e.target.closest('.admin-order-item');if(!item||e.target.closest('a,button[data-payment-detail],button[data-delete-order]'))return;document.querySelectorAll('.admin-order-item.expanded').forEach(x=>{if(x!==item){x.classList.remove('expanded');x.querySelector('.admin-order-detail')?.setAttribute('hidden','')}});item.classList.toggle('expanded');const detail=item.querySelector('.admin-order-detail');if(detail)detail.toggleAttribute('hidden');});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'){const item=e.target.closest('.admin-order-item');if(item&&!e.target.closest('button,a'))item.click()}});
 
 (async()=>{
   if(!/\/(admin-dashboard(?:\.html)?)$/.test(location.pathname)) return;

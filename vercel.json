@@ -1,1 +1,17 @@
-{"cleanUrls":true,"rewrites":[{"source":"/m/:id","destination":"/manage?id=:id"},{"source":"/:slug","destination":"/undangan?slug=:slug"}]}
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {"source":"/buat-undangan","destination":"/buat-undangan.html"},
+    {"source":"/pilih-template","destination":"/pilih-template.html"},
+    {"source":"/preview","destination":"/preview.html"},
+    {"source":"/recheck","destination":"/recheck.html"},
+    {"source":"/pembayaran","destination":"/pembayaran.html"},
+    {"source":"/status","destination":"/status.html"},
+    {"source":"/berhasil","destination":"/berhasil.html"},
+    {"source":"/bantuan-mp3","destination":"/bantuan-mp3.html"},
+    {"source":"/admin","destination":"/admin.html"},
+    {"source":"/admin-dashboard","destination":"/admin-dashboard.html"},
+    {"source":"/m/:id","destination":"/manage.html?id=:id"},
+    {"source":"/:slug","destination":"/undangan.html?slug=:slug"}
+  ]
+}
