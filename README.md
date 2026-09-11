@@ -1,54 +1,151 @@
-# BERNAUNG
+# Bernaung
 
-**Bernaung** adalah platform undangan pernikahan digital dengan tampilan modern, sederhana, dan personal. Customer dapat membuat undangan, memilih tema, melakukan pembayaran manual, lalu mengelola undangan setelah pembayaran disetujui.
+**Bernaung** adalah platform undangan pernikahan digital yang dirancang untuk menyediakan alur pembuatan, pembayaran, persetujuan admin, pengelolaan, dan publikasi undangan dalam satu sistem.
 
-## Fitur Utama
+Project ini menggunakan frontend tanpa framework dengan **HTML, CSS, dan Vanilla JavaScript**, sementara data, autentikasi, storage, dan fungsi database menggunakan **Supabase**. Deployment disiapkan untuk **Vercel**.
 
-- Pembuatan undangan tanpa akun customer.
-- Alur: isi data → pilih tema → preview → recheck → pembayaran → kirim bukti → menunggu persetujuan admin.
-- Pembayaran manual dengan harga undangan yang dapat diatur dari Admin.
-- Admin login menggunakan Google OAuth.
-- Admin dapat memeriksa bukti pembayaran dan menyetujui atau menolak pesanan.
-- Setelah disetujui, sistem membuat akses Manage, secret code, dan URL undangan.
-- Halaman Manage sebagai pusat pengelolaan undangan.
-- RSVP dan ucapan tamu.
-- Google Maps untuk lokasi acara.
-- Galeri foto yang dapat dikelola melalui Manage.
-- Musik undangan yang dapat dikelola melalui Manage.
-- Rekening / gift dan susunan acara bersifat opsional.
-- Love Story bersifat opsional.
-- Link Tamu untuk membuat link personal berdasarkan nama tamu.
-- Generator Link Tamu dapat memproses hingga 50 nama sekaligus.
-- Hasil Link Tamu dapat disalin semua atau diekspor menjadi TXT.
-- Pergantian tema di Manage dibatasi maksimal 2 kali untuk setiap undangan.
-- URL publik undangan menggunakan format yang bersih tanpa `.html`.
+---
 
-## Struktur Manage
+## Daftar Isi
 
-Halaman Manage memiliki empat tab utama:
+- [Fitur](#fitur)
+- [Alur Sistem](#alur-sistem)
+- [Admin](#admin)
+- [Manage Invitation](#manage-invitation)
+- [URL dan Routing](#url-dan-routing)
+- [Template](#template)
+- [Developer Settings](#developer-settings)
+- [Teknologi](#teknologi)
+- [Struktur Project](#struktur-project)
+- [Supabase](#supabase)
+- [Google OAuth](#google-oauth)
+- [Storage](#storage)
+- [Deployment](#deployment)
+- [Catatan Keamanan](#catatan-keamanan)
+- [Status Project](#status-project)
+
+---
+
+## Fitur
+
+### Customer
+
+- Membuat undangan tanpa akun customer.
+- Mengisi data pasangan, keluarga, acara, dan konten undangan.
+- Memilih template.
+- Melihat preview dan melakukan recheck sebelum pembayaran.
+- Melakukan pembayaran secara manual.
+- Mengunggah bukti pembayaran.
+- Melihat status pesanan.
+
+### Public Invitation
+
+- URL publik menggunakan slug yang bersih.
+- Personalisasi nama tamu melalui query `?to=`.
+- RSVP.
+- Ucapan tamu.
+- Informasi acara dan lokasi.
+- Google Maps.
+- Galeri foto.
+- Musik undangan.
+- Rekening / gift.
+- Susunan acara.
+- Love Story yang bersifat opsional.
+
+### Admin
+
+- Login admin menggunakan Google OAuth.
+- Dashboard untuk memantau pesanan.
+- Pemeriksaan bukti pembayaran.
+- Persetujuan atau penolakan pesanan.
+- Pengelolaan undangan melalui halaman Manage.
+- Pengaturan harga undangan.
+- Pengaturan pembayaran.
+- Pengaturan WhatsApp.
+- Pengaturan maintenance website.
+- Notifikasi untuk undangan yang telah melewati 14 hari setelah acara.
+
+---
+
+## Alur Sistem
+
+Alur utama customer:
+
+```text
+Isi Data
+   ↓
+Pilih Template
+   ↓
+Preview
+   ↓
+Recheck
+   ↓
+Pembayaran
+   ↓
+Upload Bukti
+   ↓
+Menunggu Persetujuan Admin
+   ↓
+Approved
+   ↓
+Manage Invitation + Public Invitation
+```
+
+Setelah pesanan disetujui, sistem menyediakan akses Manage, kode rahasia, dan URL publik undangan sesuai data pesanan.
+
+---
+
+## Admin
+
+Admin Dashboard menjadi pusat pemeriksaan dan pengelolaan pesanan.
+
+Pada bagian **Pembayaran terbaru**, informasi ringkas menampilkan pasangan dan status. Detail aksi dapat dibuka secara inline untuk menjalankan tindakan seperti:
+
+- **Periksa**
+- **Kelola**
+- **Hapus**
+
+Aksi tersebut ditampilkan langsung pada area pesanan dan tidak menggunakan popup sebagai pola utama.
+
+---
+
+## Manage Invitation
+
+Halaman Manage merupakan pusat pengelolaan undangan setelah pesanan disetujui.
 
 ### Overview
 
-Digunakan untuk memantau undangan, antara lain:
+Menampilkan informasi dan statistik undangan, antara lain:
 
 - Jumlah undangan dibuka.
 - Pengunjung unik.
-- Terakhir dibuka.
+- Waktu terakhir dibuka.
 - RSVP hadir.
 - RSVP tidak hadir.
 - Belum RSVP.
 - Daftar tamu dan informasi RSVP.
-- Ucapan dari tamu.
-- Informasi acara dan status undangan.
+- Ucapan tamu.
+- Informasi acara.
+- Status undangan.
 - Aksi cepat untuk membuka atau menyalin link.
 
 ### Edit Undangan
 
-Semua bagian pengaturan undangan ditampilkan dalam satu halaman dan dapat diperiksa dengan scroll manual.
+Bagian pengeditan mencakup:
 
-Urutan bagian:
-
-`Mempelai → Orang Tua → Acara → Love Story → Susunan Acara → Rekening / Gift → Galeri → Musik → Kontak → Template → Catatan`
+```text
+Mempelai
+→ Orang Tua
+→ Acara
+→ Love Story
+→ Susunan Acara
+→ Rekening / Gift
+→ Galeri
+→ Musik
+→ Kontak
+→ Template
+→ Catatan
+```
 
 ### Link Tamu
 
@@ -60,23 +157,33 @@ Contoh:
 https://bernaung.vercel.app/fajar-euis?to=Budi
 ```
 
-Nama dapat dimasukkan satu per baris hingga 50 nama sekaligus. Setelah generate, setiap nama mendapatkan link personal yang dapat disalin. Semua hasil juga dapat diekspor menjadi file TXT.
+Nama dapat dimasukkan satu per baris hingga 50 nama sekaligus. Link yang dihasilkan dapat disalin dan diekspor sebagai file TXT.
 
 ### Akses
 
-Berisi:
+Menampilkan:
 
-- Link Undangan.
+- Link undangan.
 - Link Manage.
-- Kode Rahasia.
+- Kode rahasia.
 - Tombol salin dan buka.
 - Berbagi melalui WhatsApp.
 
 Kode rahasia tidak dimasukkan ke dalam URL.
 
-## URL
+---
 
-URL publik undangan menggunakan slug berdasarkan nama pasangan.
+## URL dan Routing
+
+Bernaung menggunakan clean URL agar alamat publik tidak menampilkan ekstensi `.html`.
+
+### Public Invitation
+
+Format dasar:
+
+```text
+https://bernaung.vercel.app/{slug}
+```
 
 Contoh:
 
@@ -84,96 +191,102 @@ Contoh:
 https://bernaung.vercel.app/fajar-euis
 ```
 
-Untuk personalisasi nama tamu:
+Untuk link personal tamu:
 
 ```text
 https://bernaung.vercel.app/fajar-euis?to=Budi
 ```
 
-Jika slug pasangan sudah digunakan, sistem membuat variasi unik seperti:
+Jika slug sudah digunakan, sistem dapat membuat variasi unik, misalnya:
 
 ```text
 fajar-euis-2
 ```
 
-URL Manage menggunakan `manageId` random 16 karakter yang terdiri dari huruf besar, huruf kecil, dan angka.
+### Manage
 
-Contoh:
-
-```text
-https://bernaung.vercel.app/m/B7xKp92QaL5mRt8Z
-```
-
-## Clean URL
-
-Routing Vercel digunakan agar halaman utama dapat diakses tanpa ekstensi `.html`.
-
-Contoh:
+Format:
 
 ```text
-/buat-undangan
-/pilih-template
-/preview
-/recheck
-/pembayaran
-/status
-/admin
-/admin-dashboard
-/manage
+https://bernaung.vercel.app/m/{manageId}
 ```
 
-URL undangan publik menggunakan:
+`manageId` menggunakan ID acak untuk akses Manage.
+
+### Vercel Routing
+
+Konfigurasi clean URL dan rewrite berada di:
 
 ```text
-/{invite_slug}
+vercel.json
 ```
 
-Konfigurasi routing tersedia di:
+Routing digunakan untuk halaman utama aplikasi dan public invitation tanpa perlu menampilkan nama file HTML pada URL.
 
-`vercel.json`
+---
 
-## Harga Undangan
+## Template
 
-Harga undangan dikelola dari **Pengaturan Admin** dan dapat diubah untuk pesanan baru.
-
-Harga yang tersimpan di Settings digunakan untuk **pesanan baru**.
-
-Harga pada order yang sudah dibuat tetap menggunakan harga saat order tersebut dibuat, sehingga perubahan harga tidak mengubah tagihan order lama.
-
-## Tema
-
-Bernaung memiliki katalog tema dengan beberapa kategori desain. Pada versi saat ini, template yang sudah diimplementasikan dan dapat digunakan adalah:
+Template yang tersedia pada repository saat ini:
 
 - **Adat Nusantara**
 - **Playful Ceria**
 
-Pergantian tema melalui Manage dibatasi maksimal **2 kali per undangan**.
+Template berada di:
 
-## FAQ
+```text
+/templates/
+```
 
-Homepage menampilkan FAQ secara ringkas.
+Public invitation menggunakan template yang dipilih berdasarkan data undangan.
 
-- 7 FAQ ditampilkan terlebih dahulu.
-- Tombol **Lihat selengkapnya →** menambahkan FAQ berikutnya.
-- FAQ tambahan dimuat 7 item per klik.
-- Setelah seluruh FAQ tampil, tombol berubah menjadi **Tampilkan lebih sedikit ↑**.
-- Tidak menggunakan popup.
+---
 
-## Responsive & Mobile
+## Developer Settings
 
-Bernaung menggunakan pendekatan mobile-first dengan navigasi hamburger pada tampilan mobile.
+Developer workspace digunakan untuk konfigurasi sistem yang bersifat global.
 
-Admin Dashboard juga memiliki navigasi sidebar pada desktop dan menu yang dapat dibuka pada perangkat mobile.
+Menu yang tersedia saat ini:
+
+1. **Harga Undangan**
+2. **Pembayaran**
+3. **WhatsApp**
+4. **Notifikasi Sudah 14 Hari Setelah Acara**
+5. **Maintenance Web**
+
+### Harga Undangan
+
+Harga yang tersimpan di Developer digunakan sebagai harga untuk pesanan baru.
+
+Perubahan harga tidak mengubah nominal pada order yang sudah dibuat karena order menyimpan harga pada saat order tersebut dibuat.
+
+### Pembayaran
+
+Konfigurasi pembayaran digunakan untuk menentukan informasi pembayaran yang ditampilkan kepada customer, termasuk metode pembayaran dan QRIS admin.
+
+### WhatsApp
+
+Menyimpan nomor WhatsApp yang digunakan untuk kebutuhan kontak dan komunikasi admin.
+
+### Notifikasi 14 Hari
+
+Digunakan untuk membantu admin memantau undangan yang sudah melewati **14 hari setelah tanggal acara**.
+
+### Maintenance Web
+
+Digunakan untuk mengaktifkan atau menonaktifkan mode maintenance pada area publik website. Area admin tetap digunakan untuk pengelolaan sistem.
+
+---
 
 ## Teknologi
 
-Frontend:
+### Frontend
 
-- HTML
-- CSS
+- HTML5
+- CSS3
 - Vanilla JavaScript
 
-Backend dan layanan:
+### Backend & Services
 
 - Supabase Database
 - Supabase Authentication
@@ -181,79 +294,9 @@ Backend dan layanan:
 - Google OAuth
 - Vercel
 
-Tidak menggunakan framework frontend.
+Project tidak menggunakan framework frontend.
 
-## Supabase Setup
-
-Buat project baru di Supabase, lalu jalankan SQL yang diperlukan dari repository.
-
-File utama:
-
-```text
-supabase-schema.sql
-supabase-pretty-url.sql
-supabase-manage-editor.sql
-supabase-manage-v3.sql
-supabase-invitation-photos.sql
-supabase-admin-bootstrap.sql
-supabase-v6-upgrade.sql
-```
-
-Setelah project dibuat, isi koneksi frontend di:
-
-```text
-js/supabase.js
-```
-
-Gunakan:
-
-- `SUPABASE_URL`
-- `SUPABASE_PUBLISHABLE_KEY`
-
-Gunakan publishable/anon key pada browser. Jangan menaruh `service_role` key di frontend.
-
-## Google Login Admin
-
-Aktifkan Google Provider pada:
-
-**Supabase → Authentication → Providers**
-
-Setelah login Google pertama kali, user admin perlu dimasukkan ke tabel `admin_users` sesuai konfigurasi database.
-
-## Storage
-
-Bukti pembayaran menggunakan bucket:
-
-```text
-payment-proofs
-```
-
-Foto undangan menggunakan bucket:
-
-```text
-invitation-photos
-```
-
-## Deployment
-
-Project disiapkan untuk deployment menggunakan **Vercel**.
-
-Pastikan:
-
-1. Project Supabase sudah dikonfigurasi.
-2. SQL yang diperlukan sudah dijalankan.
-3. `js/supabase.js` berisi konfigurasi Supabase yang benar.
-4. Google OAuth sudah dikonfigurasi.
-5. Domain deployment Vercel sudah masuk ke konfigurasi redirect/origin yang diperlukan.
-6. `vercel.json` ikut dideploy agar clean URL dan routing berjalan.
-
-## Catatan Keamanan
-
-Implementasi saat ini merupakan fondasi MVP.
-
-Secret code masih disimpan pada database untuk mendukung flow pengembangan dan pengujian. Untuk production yang lebih ketat, pengelolaan secret sebaiknya dipindahkan ke server-side/Edge Function dan menggunakan hash atau mekanisme perlindungan yang sesuai.
-
-Policy Storage dan akses data juga sebaiknya diperketat sebelum aplikasi digunakan pada skala production.
+---
 
 ## Struktur Project
 
@@ -279,10 +322,10 @@ bernaung-main/
 │   └── style.css
 │
 ├── js/
-│   ├── app.js
+│   ├── admin-media.js
 │   ├── admin.js
+│   ├── app.js
 │   ├── form.js
-│   ├── invite.js
 │   ├── manage.js
 │   ├── payment.js
 │   ├── preview.js
@@ -300,9 +343,141 @@ bernaung-main/
 └── *.sql
 ```
 
-## Status
+---
 
-Bernaung saat ini memiliki fondasi utama untuk:
+## Supabase
+
+Project menggunakan Supabase untuk database, authentication, storage, dan RPC/database functions.
+
+Repository menyediakan beberapa SQL migration dan konfigurasi untuk bagian-bagian berikut:
+
+```text
+supabase-schema.sql
+supabase-pretty-url.sql
+supabase-manage-editor.sql
+supabase-manage-v3.sql
+supabase-manage-save-fix.sql
+supabase-invitation-photos.sql
+supabase-default-photo-manager-v2.sql
+supabase-media-manager.sql
+supabase-admin-bootstrap.sql
+supabase-v6-upgrade.sql
+supabase-developer.sql
+supabase-public-photo-fix-v1.sql
+```
+
+> **Catatan:** file SQL merupakan migration/patch untuk kondisi schema dan fitur yang berbeda. Jangan menjalankan semua file secara membabi buta pada database yang sudah berjalan. Gunakan migration yang sesuai dengan kondisi database dan versi project yang digunakan.
+
+Setelah project Supabase tersedia, konfigurasi koneksi frontend berada di:
+
+```text
+js/supabase.js
+```
+
+Gunakan:
+
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+
+Jangan menaruh `service_role` key di frontend.
+
+### Fix Music RPC
+
+Jika Manage menampilkan error:
+
+```text
+column "music" does not exist
+```
+
+gunakan migration:
+
+```text
+supabase-manage-music-fix-v3.sql
+```
+
+File tersebut memperbaiki RPC yang menggunakan kolom database `orders.music_url`, sementara key JSON publik tetap dapat menggunakan nama `music`.
+
+---
+
+## Google OAuth
+
+Admin menggunakan Google OAuth melalui Supabase Authentication.
+
+Konfigurasi dilakukan melalui:
+
+```text
+Supabase
+→ Authentication
+→ Providers
+→ Google
+```
+
+User admin perlu memiliki akses yang sesuai pada konfigurasi `admin_users`.
+
+Pastikan URL redirect/origin untuk deployment juga sudah dikonfigurasi sesuai domain yang digunakan.
+
+---
+
+## Storage
+
+Bucket yang digunakan project antara lain:
+
+```text
+payment-proofs
+invitation-photos
+```
+
+`payment-proofs` digunakan untuk bukti pembayaran, sedangkan `invitation-photos` digunakan untuk media foto undangan.
+
+---
+
+## Deployment
+
+Project disiapkan untuk deployment menggunakan **Vercel**.
+
+Checklist dasar:
+
+1. Project Supabase sudah dibuat.
+2. Schema dan migration yang diperlukan sudah diterapkan.
+3. `js/supabase.js` berisi konfigurasi Supabase yang benar.
+4. Google OAuth sudah dikonfigurasi.
+5. Storage bucket yang diperlukan tersedia.
+6. Domain deployment sudah masuk ke konfigurasi redirect/origin yang diperlukan.
+7. `vercel.json` ikut dideploy.
+
+Setelah deployment, lakukan pengujian minimal pada:
+
+- Customer flow.
+- Upload bukti pembayaran.
+- Admin login.
+- Approval order.
+- Manage invitation.
+- Public invitation.
+- Link tamu.
+- Media/foto.
+- Musik.
+- Pembayaran.
+- Maintenance mode.
+
+---
+
+## Catatan Keamanan
+
+Project saat ini merupakan fondasi aplikasi MVP dan masih memiliki beberapa area yang perlu diperketat sebelum penggunaan production berskala besar.
+
+Hal yang perlu diperhatikan:
+
+- Secret code masih digunakan untuk mendukung flow akses Manage.
+- Kebijakan Storage dan akses database perlu disesuaikan dengan kebutuhan production.
+- Credential sensitif tidak boleh disimpan di frontend.
+- `service_role` key Supabase tidak boleh digunakan pada browser.
+- Policy RLS Supabase perlu ditinjau sebelum deployment production.
+
+---
+
+## Status Project
+
+Bernaung saat ini memiliki fondasi untuk:
 
 - Customer flow.
 - Manual payment.
@@ -315,17 +490,8 @@ Bernaung saat ini memiliki fondasi utama untuk:
 - Photo management.
 - Music management.
 - Template management.
-- Admin settings.
+- Developer settings.
 - Clean public URLs.
+- Maintenance mode.
 
-README ini mengikuti kondisi project pada baseline `bernaung-main-v6-gas`.
-
-
-## Developer
-
-Developer workspace saat ini mencakup Harga Undangan, Pembayaran, WhatsApp, Notif Sudah 14 Hari Setelah Acara, dan Maintenance Web.
-
-
-### Manage music column fix V3
-
-Jika Manage menampilkan `column "music" does not exist`, jalankan `supabase-manage-music-fix-v3.sql` setelah migration Supabase lainnya. File ini memastikan RPC Manage/public/save menggunakan kolom `orders.music_url` dan hanya memakai `music` sebagai nama key JSON.
+README ini disusun berdasarkan struktur dan fitur pada baseline project yang sedang digunakan.
