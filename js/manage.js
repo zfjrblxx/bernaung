@@ -4,6 +4,22 @@ if(!login||!panel)return;
 const params=new URLSearchParams(location.search);
 const manageId=params.get('id')||location.pathname.split('/').filter(Boolean).pop()||'';
 let accessCode='',data=null,overview=null,musicLibrary=[];
+async function loadDefaultPhotoSets(){
+ if(!supabaseReady())return;
+ try{
+  const {data:r,error}=await supabaseClient.rpc('get_default_photo_sets_public');
+  if(!error&&Array.isArray(r)){data.defaultPhotos=r;return}
+ }catch(_){}
+ try{
+  const {data:sets,error:setsError}=await supabaseClient.from('default_photo_sets').select('id,set_key,name,cover_photo_index').eq('active',true).order('created_at');
+  if(setsError)throw setsError;
+  const {data:items,error:itemsError}=await supabaseClient.from('default_photo_items').select('set_id,slot_index,image_url').eq('active',true).not('image_url','is',null).order('slot_index');
+  if(itemsError)throw itemsError;
+  const grouped=Object.fromEntries((sets||[]).map(s=>[String(s.id),[]]));
+  (items||[]).forEach(i=>{if(grouped[String(i.set_id)])grouped[String(i.set_id)].push({slotIndex:i.slot_index,imageUrl:i.image_url})});
+  data.defaultPhotos=(sets||[]).map(s=>({id:s.id,setKey:s.set_key,name:s.name,coverPhotoIndex:s.cover_photo_index,items:grouped[String(s.id)]||[]}));
+ }catch(e){console.warn('Gagal memuat paket foto default:',e)}
+}
 const templates=[
 {id:3,name:'Adat Nusantara',cat:'Elegant',url:'/templates/adat-nusantara.html'},
 {id:13,name:'Playful Ceria',cat:'Playful',url:'/templates/playful-ceria.html'}
@@ -83,5 +99,5 @@ async function save(e){e?.preventDefault();const next=collect();if(!next.groom||
 async function uploadPhoto(index,file){if(!file)return;if(file.size>8*1024*1024){notice('Ukuran foto maksimal 8 MB.','error');return}if(!supabaseReady()){notice('Upload foto membutuhkan Supabase aktif.','error');return}const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg',path=`${manageId}/${Date.now()}-${Math.random().toString(36).slice(2,9)}.${ext}`;notice('Mengunggah foto…');try{const {error}=await supabaseClient.storage.from('invitation-photos').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(error)throw error;const {data:pub}=supabaseClient.storage.from('invitation-photos').getPublicUrl(path),next=photoUrls(data.photos||[]);next[index]=pub.publicUrl;await persistPhotos(next);data.photos=next;render(data);setTab('edit');notice('Foto berhasil diunggah.','success')}catch(x){console.error(x);notice(x.message||'Gagal mengunggah foto.','error')}}
 async function persistPhotos(next){const {error}=await supabaseClient.rpc('update_manage_invitation',{p_manage_id:manageId,p_secret_code:accessCode,p_data:{photos:next}});if(error)throw error}
 function previewMusic(url){if(!url)return;let a=document.getElementById('manageMusicPreview');if(!a){a=document.createElement('audio');a.id='manageMusicPreview';document.body.appendChild(a)}if(a.src===abs(url)&&!a.paused){a.pause();return}a.src=abs(url);a.play().catch(()=>{})}
-login.addEventListener('submit',async e=>{e.preventDefault();accessCode=val(new FormData(login).get('code')).toUpperCase();err.textContent='';err.classList.remove('show');try{if(!manageId)throw Error('Link Manage tidak valid.');if(!supabaseReady()){data=getData();if(accessCode!==String(data.secretCode||data.secret||'').toUpperCase())throw Error('Kode rahasia tidak sesuai.')}else{const {data:r,error}=await supabaseClient.rpc('get_manage_invitation',{p_manage_id:manageId,p_secret_code:accessCode});if(error)throw error;if(!r)throw Error('Kode rahasia tidak sesuai atau undangan tidak aktif.');data=r;await loadMusic()}login.classList.add('hidden');panel.classList.remove('hidden');render(data)}catch(x){err.textContent=x.message||'Kode rahasia tidak sesuai.';err.classList.add('show')}});
+login.addEventListener('submit',async e=>{e.preventDefault();accessCode=val(new FormData(login).get('code')).toUpperCase();err.textContent='';err.classList.remove('show');try{if(!manageId)throw Error('Link Manage tidak valid.');if(!supabaseReady()){data=getData();if(accessCode!==String(data.secretCode||data.secret||'').toUpperCase())throw Error('Kode rahasia tidak sesuai.')}else{const {data:r,error}=await supabaseClient.rpc('get_manage_invitation',{p_manage_id:manageId,p_secret_code:accessCode});if(error)throw error;if(!r)throw Error('Kode rahasia tidak sesuai atau undangan tidak aktif.');data=r;await Promise.all([loadMusic(),loadDefaultPhotoSets()])}login.classList.add('hidden');panel.classList.remove('hidden');render(data)}catch(x){err.textContent=x.message||'Kode rahasia tidak sesuai.';err.classList.add('show')}});
 })();
