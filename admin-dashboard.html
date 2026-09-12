@@ -1,120 +1,37 @@
-<!doctype html>
-<html lang="id">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Workspace — Bernaung</title>
-<link rel="stylesheet" href="css/style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
-</head>
-<body class="admin-body">
-<div class="admin-layout">
-  <aside class="admin-sidebar" id="adminSidebar">
-    <div class="admin-brand"><a href="/">BERNAUNG</a><span>ADMIN WORKSPACE</span></div>
-    <nav class="admin-nav-list" aria-label="Navigasi admin">
-      <button class="admin-nav active" data-section="overview"><span>Overview</span></button>
-      <button class="admin-nav" data-section="orders"><span>Daftar Pesanan</span></button>
-      <button class="admin-nav" data-section="customers"><span>Customer</span></button>
-      <button class="admin-nav" data-section="templates"><span>Template</span></button>
-      <button class="admin-nav" data-section="settings"><span>Pengaturan</span></button>
-      <button class="admin-nav" data-section="media"><span>Media</span></button>
-      <div class="admin-nav-group-label">Developer</div>
-      <button class="admin-nav" data-section="dev-price"><span>Harga Undangan</span></button>
-      <button class="admin-nav" data-section="dev-payment"><span>Pembayaran</span></button>
-      <button class="admin-nav" data-section="dev-whatsapp"><span>WhatsApp</span></button>
-      <button class="admin-nav" data-section="dev-reminder"><span>Notif 14 Hari Setelah Acara</span></button>
-      <button class="admin-nav" data-section="dev-maintenance"><span>Maintenance Web</span></button>
-    </nav>
-    <div class="admin-sidebar-bottom">
-      <a href="/">Lihat website</a>
-      <button id="adminLogout">Keluar</button>
-    </div>
-  </aside>
-  <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Workspace — Bernaung</title><link rel="stylesheet" href="css/style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/supabase.js"></script></head><body class="admin-body"><div class="admin-layout">
+<aside class="admin-sidebar" id="adminSidebar"><div class="admin-brand"><a href="/">BERNAUNG</a><span>ADMIN WORKSPACE</span></div><nav>
+<button class="admin-nav active" data-section="overview">Overview</button><button class="admin-nav" data-section="orders">Daftar Pesanan</button><button class="admin-nav" data-section="customers">Customer</button><button class="admin-nav" data-section="templates">Template</button><button class="admin-nav" data-section="settings">Pengaturan</button><button class="admin-nav" data-section="media">Media</button>
+<div class="admin-nav-group-label">Developer</div><button class="admin-nav" data-section="dev-price">Harga Undangan</button><button class="admin-nav" data-section="dev-payment">Pembayaran</button><button class="admin-nav" data-section="dev-whatsapp">WhatsApp</button><button class="admin-nav" data-section="dev-reminder">Notif Sudah 14 Hari Setelah Acara</button><button class="admin-nav" data-section="dev-maintenance">Maintenance Web</button>
+</nav><div class="admin-sidebar-bottom"><a href="/">Lihat website</a><button id="adminLogout">Keluar</button></div></aside>
+<div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+<main class="admin-main">
+<header class="admin-header"><button id="adminMenu" class="admin-menu" aria-label="Buka menu">☰</button><div><span class="eyebrow">BERNAUNG ADMIN</span><h1 id="pageTitle">Dashboard</h1><p>Ruang kerja untuk memeriksa dan menerbitkan undangan.</p></div><span class="admin-header-meta">ADMIN WORKSPACE</span></header>
 
-  <main class="admin-main">
-    <header class="admin-header">
-      <button id="adminMenu" class="admin-menu" aria-label="Buka menu">☰</button>
-      <div class="admin-header-copy">
-        <span class="eyebrow">BERNAUNG ADMIN</span>
-        <h1 id="pageTitle">Dashboard</h1>
-        <p>Ruang kerja untuk memeriksa dan menerbitkan undangan.</p>
-      </div>
-    </header>
+<section id="section-overview" class="admin-section active">
+  <div class="admin-stats"><div class="admin-stat"><span>Total pesanan</span><strong id="statOrders">0</strong></div><div class="admin-stat"><span>Menunggu</span><strong id="statPending">0</strong></div><div class="admin-stat"><span>Approved</span><strong id="statActive">0</strong></div><div class="admin-stat"><span>Pendapatan</span><strong id="statRevenue">Rp0</strong></div></div>
+  <div class="admin-section-head"><div><span class="eyebrow">TERBARU</span><h2>Pembayaran terbaru</h2><p>Pesanan paling baru yang masuk ke workspace.</p></div><button class="admin-link-btn" data-go="orders">Lihat semua →</button></div>
+  <div class="admin-flat-list" id="overviewPayments"></div>
+</section>
 
-    <section id="section-overview" class="admin-section active">
-      <div class="admin-section-intro">
-        <div><span class="admin-section-kicker">OVERVIEW</span><h2>Ringkasan workspace</h2><p>Pantau pesanan, undangan aktif, dan pemasukan dari satu tempat.</p></div>
-      </div>
-      <div class="admin-stats">
-        <div class="admin-stat"><span>Total pesanan</span><strong id="statOrders">0</strong></div>
-        <div class="admin-stat"><span>Menunggu ACC</span><strong id="statPending">0</strong></div>
-        <div class="admin-stat"><span>Undangan aktif</span><strong id="statActive">0</strong></div>
-        <div class="admin-stat"><span>Pendapatan</span><strong id="statRevenue">Rp0</strong></div>
-      </div>
-      <div class="admin-flat-section">
-        <div class="admin-flat-head"><div><span class="admin-section-kicker">TERBARU</span><h3>Pembayaran terbaru</h3><p>Pesanan paling baru yang masuk ke workspace.</p></div><button class="admin-link-btn" data-go="orders">Lihat semua →</button></div>
-        <div id="overviewPayments" class="admin-flat-list"></div>
-      </div>
-      <div class="admin-overview-links">
-        <button class="admin-quick-link" data-go="customers"><span>Customer</span><small>Lihat data customer dari pesanan.</small><b>→</b></button>
-        <button class="admin-quick-link" data-go="templates"><span>Template</span><small>Pantau koleksi tema Bernaung.</small><b>→</b></button>
-        <button class="admin-quick-link" data-go="media"><span>Media</span><small>Kelola MP3 dan foto default.</small><b>→</b></button>
-        <button class="admin-quick-link" data-go="settings"><span>Pengaturan</span><small>Lihat konfigurasi dasar workspace.</small><b>→</b></button>
-      </div>
-    </section>
+<section id="section-orders" class="admin-section">
+  <div class="admin-section-head"><div><span class="eyebrow">PESANAN</span><h2>Daftar Pesanan</h2><p>Semua pesanan, status pembayaran, dan akses undangan.</p></div></div>
+  <div class="orders-toolbar"><div class="orders-tabs"><button class="orders-tab active" data-filter="all">Semua</button><button class="orders-tab" data-filter="pending">Menunggu</button><button class="orders-tab" data-filter="approved">Approved</button><button class="orders-tab" data-filter="rejected">Ditolak</button></div><label class="orders-search"><span>⌕</span><input id="orderSearch" type="search" placeholder="Cari nama pasangan..." autocomplete="off"></label></div>
+  <div class="admin-flat-list" id="ordersList"></div>
+</section>
 
-    <section id="section-orders" class="admin-section">
-      <div class="admin-section-intro"><div><span class="admin-section-kicker">ORDERS</span><h2>Daftar Pesanan</h2><p>Semua pesanan, status pembayaran, dan akses undangan dalam satu tempat.</p></div></div>
-      <div class="admin-order-stats">
-        <div><span>Total</span><strong id="orderStatAll">0</strong></div><div><span>Menunggu</span><strong id="orderStatPending">0</strong></div><div><span>Approved</span><strong id="orderStatApproved">0</strong></div><div><span>Ditolak</span><strong id="orderStatRejected">0</strong></div>
-      </div>
-      <div class="admin-order-toolbar">
-        <div class="admin-tabs" role="tablist"><button class="admin-filter active" data-order-filter="all">Semua</button><button class="admin-filter" data-order-filter="pending">Menunggu</button><button class="admin-filter" data-order-filter="approved">Approved</button><button class="admin-filter" data-order-filter="rejected">Ditolak</button></div>
-        <label class="admin-search"><span>⌕</span><input id="orderSearch" type="search" placeholder="Cari nama pasangan..." autocomplete="off"></label>
-      </div>
-      <div id="ordersList" class="admin-order-list"></div>
-    </section>
+<section id="section-customers" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">CUSTOMER</span><h2>Customer</h2><p>Data customer dari pesanan saat ini.</p></div></div><div class="admin-flat-list" id="customersList"></div></section>
+<section id="section-templates" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">KOLEKSI</span><h2>Koleksi tema</h2><p>15 tema dalam 8 kategori Bernaung.</p></div></div><div id="templatesList" class="admin-flat-list"></div></section>
 
-    <section id="section-customers" class="admin-section">
-      <div class="admin-section-intro"><div><span class="admin-section-kicker">CUSTOMERS</span><h2>Customer</h2><p>Data customer yang tersimpan dari pesanan saat ini.</p></div></div>
-      <div class="admin-flat-section"><div class="admin-flat-head"><div><h3>Daftar customer</h3><p>Informasi utama customer tanpa panel bertingkat.</p></div></div><div id="customersList" class="admin-flat-list"></div></div>
-    </section>
+<section id="section-media" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">MEDIA</span><h2>Media Manager</h2><p>Kelola musik MP3 dan foto default yang tersedia untuk customer.</p></div></div><div class="media-manager-grid"><div class="media-manager-block"><div class="media-manager-head"><div><span class="eyebrow">MP3 MANAGER</span><h3>Musik undangan</h3></div><button type="button" class="small-btn" id="addMusicBtn">+ Tambah MP3</button></div><div id="musicManagerList" class="media-list"></div></div><div class="media-manager-block"><div class="media-manager-head"><div><span class="eyebrow">DEFAULT PHOTO</span><h3>Foto default</h3><p class="media-subtext">Satu default berisi 8 foto: 1 pria, 1 wanita, dan 6 Foto Bersama.</p></div><button type="button" class="small-btn" id="openDefaultManagerBtn">Kelola Default</button></div><div id="defaultPhotoManager" class="default-photo-list"></div></div></div></section>
 
-    <section id="section-templates" class="admin-section">
-      <div class="admin-section-intro"><div><span class="admin-section-kicker">TEMPLATES</span><h2>Koleksi Tema</h2><p>15 tema dalam 8 kategori Bernaung.</p></div></div>
-      <div class="template-toolbar"><span>15 tema tersedia</span><small>Jumlah pesanan ditampilkan berdasarkan template yang dipilih.</small></div>
-      <div id="templatesList" class="template-stat-list"></div>
-    </section>
+<section id="section-settings" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">WORKSPACE</span><h2>Pengaturan</h2><p>Konfigurasi dasar workspace.</p></div></div><div class="settings-list"><div class="setting-row"><span>Pembayaran</span><strong>Manual transfer</strong></div><div class="setting-row"><span>Customer login</span><strong>Tidak diperlukan</strong></div><div class="setting-row"><span>Admin login</span><strong>Google</strong></div></div></section>
 
-    <section id="section-media" class="admin-section">
-      <div class="admin-section-intro"><div><span class="admin-section-kicker">MEDIA</span><h2>Media Manager</h2><p>Kelola musik MP3 dan foto default yang tersedia untuk customer.</p></div></div>
-      <div class="media-manager-grid">
-        <div class="media-manager-block"><div class="media-manager-head"><div><span class="admin-section-kicker">MP3 MANAGER</span><h3>Musik undangan</h3><p>Kelola koleksi musik yang bisa dipilih customer.</p></div><button type="button" class="small-btn" id="addMusicBtn">+ Tambah MP3</button></div><div id="musicManagerList" class="media-list"></div></div>
-        <div class="media-manager-block"><div class="media-manager-head"><div><span class="admin-section-kicker">DEFAULT PHOTO</span><h3>Foto default</h3><p>Satu default berisi 8 foto: 1 pria, 1 wanita, dan 6 Foto Bersama.</p></div><button type="button" class="small-btn" id="openDefaultManagerBtn">Kelola Default</button></div><div id="defaultPhotoManager" class="default-photo-list"></div></div>
-      </div>
-    </section>
-
-    <section id="section-settings" class="admin-section">
-      <div class="admin-section-intro"><div><span class="admin-section-kicker">SETTINGS</span><h2>Pengaturan</h2><p>Konfigurasi dasar workspace Bernaung.</p></div></div>
-      <div class="settings-list"><div class="setting-row"><span>Pembayaran</span><strong>Manual transfer</strong></div><div class="setting-row"><span>Customer login</span><strong>Tidak diperlukan</strong></div><div class="setting-row"><span>Admin login</span><strong>Google</strong></div></div>
-    </section>
-
-    <section id="section-dev-price" class="admin-section"><div class="admin-section-intro"><div><span class="admin-section-kicker">DEVELOPER</span><h2>Harga Undangan</h2><p>Harga ini dipakai untuk pesanan baru.</p></div></div><div class="developer-panel"><div class="developer-form"><label>Harga undangan<input id="devPriceInput" type="number" min="1000" step="1000"></label><button class="btn btn-dark" id="saveDevPrice">Simpan perubahan</button></div></div></section>
-
-    <section id="section-dev-payment" class="admin-section"><div class="admin-section-intro"><div><span class="admin-section-kicker">DEVELOPER</span><h2>Pembayaran</h2><p>Kelola rekening dan QRIS yang tampil pada halaman pembayaran.</p></div></div><div class="developer-panel"><div class="developer-form"><div id="paymentMethodsEditor"></div><button type="button" class="small-btn" id="addPaymentMethod">+ Tambah rekening / e-wallet</button><label>Foto QRIS<input id="devQrisFile" type="file" accept="image/*"></label><div id="devQrisPreview" class="developer-preview"></div><div class="developer-actions"><button class="btn btn-dark" id="saveDevPayment">Simpan pembayaran</button><button type="button" class="small-btn danger-outline" id="removeDevQris">Hapus QRIS</button></div></div></div></section>
-
-    <section id="section-dev-whatsapp" class="admin-section"><div class="admin-section-intro"><div><span class="admin-section-kicker">DEVELOPER</span><h2>WhatsApp</h2><p>Nomor WhatsApp utama admin Bernaung.</p></div></div><div class="developer-panel"><div class="developer-form"><label>Nomor WhatsApp<input id="devWhatsappInput" type="text" placeholder="628123456789"></label><small class="developer-help">Gunakan format internasional tanpa tanda +.</small><button class="btn btn-dark" id="saveDevWhatsapp">Simpan perubahan</button></div></div></section>
-
-    <section id="section-dev-reminder" class="admin-section"><div class="admin-section-intro"><div><span class="admin-section-kicker">DEVELOPER</span><h2>Notif Sudah 14 Hari Setelah Acara</h2><p>Pengingat untuk undangan yang sudah melewati jumlah hari setelah acara.</p></div></div><div class="developer-panel"><div class="developer-form"><label class="developer-check"><input id="devReminderEnabled" type="checkbox"> Aktifkan notifikasi</label><div class="developer-help">Notifikasi akan muncul setelah tepat 14 hari dari tanggal acara.</div><button class="btn btn-dark" id="saveDevReminder">Simpan perubahan</button></div><div id="reminderList" class="developer-reminder-list"></div></div></section>
-
-    <section id="section-dev-maintenance" class="admin-section"><div class="admin-section-intro"><div><span class="admin-section-kicker">DEVELOPER</span><h2>Maintenance Web</h2><p>Matikan akses publik sementara tanpa mengganggu akses admin.</p></div></div><div class="developer-panel"><div class="developer-form"><label class="developer-check"><input id="devMaintenance" type="checkbox"> Aktifkan maintenance</label><label>Pesan maintenance<input id="devMaintenanceMessage" type="text" placeholder="Bernaung sedang melakukan pemeliharaan."></label><button class="btn btn-dark" id="saveDevMaintenance">Simpan perubahan</button></div></div></section>
-  </main>
-</div>
-
+<section id="section-dev-price" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">DEVELOPER</span><h2>Harga Undangan</h2><p>Harga ini dipakai untuk pesanan baru.</p></div></div><div class="developer-form"><label>Harga undangan<input id="devPriceInput" type="number" min="1000" step="1000"></label><button class="btn btn-dark" id="saveDevPrice">Simpan perubahan</button></div></section>
+<section id="section-dev-payment" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">DEVELOPER</span><h2>Pembayaran</h2><p>Kelola rekening dan QRIS yang tampil pada halaman pembayaran.</p></div></div><div class="developer-form"><div id="paymentMethodsEditor"></div><button type="button" class="small-btn" id="addPaymentMethod">+ Tambah rekening / e-wallet</button><label>Foto QRIS<input id="devQrisFile" type="file" accept="image/*"></label><div id="devQrisPreview" class="developer-preview"></div><div class="developer-actions"><button class="btn btn-dark" id="saveDevPayment">Simpan pembayaran</button><button type="button" class="small-btn danger-outline" id="removeDevQris">Hapus QRIS</button></div></div></section>
+<section id="section-dev-whatsapp" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">DEVELOPER</span><h2>WhatsApp</h2><p>Nomor WhatsApp utama admin Bernaung.</p></div></div><div class="developer-form"><label>Nomor WhatsApp<input id="devWhatsappInput" type="text" placeholder="628123456789"></label><small class="developer-help">Gunakan format internasional tanpa tanda +.</small><button class="btn btn-dark" id="saveDevWhatsapp">Simpan perubahan</button></div></section>
+<section id="section-dev-reminder" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">DEVELOPER</span><h2>Notif Sudah 14 Hari Setelah Acara</h2><p>Pengingat untuk undangan yang sudah melewati jumlah hari setelah acara.</p></div></div><div class="developer-form"><label class="developer-check"><input id="devReminderEnabled" type="checkbox"> Aktifkan notifikasi</label><div class="developer-help">Notifikasi akan muncul setelah tepat 14 hari dari tanggal acara.</div><button class="btn btn-dark" id="saveDevReminder">Simpan perubahan</button></div><div id="reminderList" class="developer-reminder-list"></div></section>
+<section id="section-dev-maintenance" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">DEVELOPER</span><h2>Maintenance Web</h2><p>Matikan akses publik sementara tanpa mengganggu akses admin.</p></div></div><div class="developer-form"><label class="developer-check"><input id="devMaintenance" type="checkbox"> Aktifkan maintenance</label><label>Pesan maintenance<input id="devMaintenanceMessage" type="text" placeholder="Bernaung sedang melakukan pemeliharaan."></label><button class="btn btn-dark" id="saveDevMaintenance">Simpan perubahan</button></div></section>
+</main></div>
 <div id="paymentModal" class="admin-modal"><div class="admin-modal-box"><button id="closePaymentModal" class="admin-modal-close">×</button><div id="paymentDetail"></div></div></div>
 <div id="adminActionModal" class="admin-action-modal" aria-hidden="true"><div class="admin-action-backdrop" data-dialog-close></div><div class="admin-action-box" role="dialog" aria-modal="true" aria-labelledby="adminActionTitle"><button type="button" class="admin-action-close" data-dialog-close>×</button><span id="adminActionKicker" class="admin-action-kicker">BERNAUNG ADMIN</span><h2 id="adminActionTitle">Konfirmasi</h2><p id="adminActionMessage"></p><label id="adminActionField" class="admin-action-field hidden"><span id="adminActionLabel">Alasan</span><textarea id="adminActionInput" rows="4" placeholder="Tulis alasan..."></textarea></label><div class="admin-action-buttons"><button type="button" class="admin-dialog-cancel" data-dialog-cancel>Batal</button><button type="button" class="admin-dialog-confirm" id="adminDialogConfirm">Lanjutkan</button></div></div></div>
-<script src="js/admin.js"></script><script src="js/admin-media.js"></script>
-</body>
-</html>
+<script src="js/admin.js"></script><script src="js/admin-media.js"></script></body></html>
