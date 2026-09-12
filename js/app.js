@@ -9,7 +9,7 @@ const templates=[
 {id:8,name:'Modern 02',cat:'Modern',tone:'bold'},
 {id:9,name:'Artistic 01',cat:'Artistic',tone:'art'},
 {id:10,name:'Artistic 02',cat:'Artistic',tone:'gallery'},
-{id:11,name:'Nature 01',cat:'Nature',tone:'nature'},
+{id:11,name:'Laras Bumi',cat:'Nature',tone:'nature',url:'templates/nature-laras-bumi.html'},
 {id:12,name:'Nature 02',cat:'Nature',tone:'garden'},
 {id:13,name:'Playful Ceria',cat:'Playful',tone:'playful',url:'templates/playful-ceria.html'},
 {id:14,name:'Islamic 01',cat:'Islamic',tone:'islamic'},

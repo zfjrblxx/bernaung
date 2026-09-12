@@ -12,7 +12,7 @@ const TEMPLATE_DATA = [
   {id:8,name:'Modern 02',category:'Modern',url:''},
   {id:9,name:'Artistic 01',category:'Artistic',url:''},
   {id:10,name:'Artistic 02',category:'Artistic',url:''},
-  {id:11,name:'Nature 01',category:'Nature',url:''},
+  {id:11,name:'Laras Bumi',category:'Nature',url:'templates/nature-laras-bumi.html'},
   {id:12,name:'Nature 02',category:'Nature',url:''},
   {id:13,name:'Playful Ceria',category:'Playful',url:'templates/playful-ceria.html'},
   {id:14,name:'Islamic 01',category:'Islamic',url:''},
