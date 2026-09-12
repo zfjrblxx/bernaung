@@ -173,3 +173,59 @@ limit 1;
 $$;
 
 grant execute on function public.get_public_invitation(text) to anon,authenticated;
+
+-- IMPORTANT: Manage page loads its data from this RPC after refresh.
+-- Keep the same fields returned by the save/public functions so nickname,
+-- Instagram and Love Story persist in the editor after reopening Manage.
+create or replace function public.get_manage_invitation(p_manage_id text,p_secret_code text)
+returns jsonb
+language sql
+stable
+security definer
+set search_path=public
+as $$
+select jsonb_build_object(
+  'id',o.id,
+  'groom',o.groom,
+  'bride',o.bride,
+  'groomNickname',o.groom_nickname,
+  'brideNickname',o.bride_nickname,
+  'groomInstagram',o.groom_instagram,
+  'brideInstagram',o.bride_instagram,
+  'groomFather',o.groom_father,
+  'groomMother',o.groom_mother,
+  'brideFather',o.bride_father,
+  'brideMother',o.bride_mother,
+  'eventType',o.event_type,
+  'date',o.event_date,
+  'time',o.event_time,
+  'venue',o.venue,
+  'address',o.address,
+  'maps',o.maps_url,
+  'whatsapp',o.whatsapp,
+  'music',o.music_url,
+  'gift',o.gift,
+  'photos',coalesce(o.photos,'[]'::jsonb),
+  'loveStory',coalesce(o.love_story,'[]'::jsonb),
+  'schedules',coalesce(o.schedules,'[]'::jsonb),
+  'accounts',coalesce(o.accounts,'[]'::jsonb),
+  'notes',o.notes,
+  'photoMode',coalesce(o.photo_mode,'own'),
+  'coverPhotoIndex',coalesce(o.cover_photo_index,-1),
+  'defaultPhotos',coalesce(public.get_default_photo_sets_public(),'[]'::jsonb),
+  'templateId',o.template_id,
+  'templateName',o.template_name,
+  'templateCategory',o.template_category,
+  'templateUrl',o.template_url,
+  'templateChangeCount',coalesce(o.template_change_count,0),
+  'inviteUrl',case when o.invite_slug is not null then '/'||o.invite_slug else null end,
+  'manageUrl','/m/'||o.manage_id
+)
+from public.orders o
+where o.manage_id=p_manage_id
+  and o.status='approved'
+  and o.secret_code_plain=upper(trim(p_secret_code))
+limit 1;
+$$;
+
+grant execute on function public.get_manage_invitation(text,text) to anon,authenticated;
