@@ -53,36 +53,50 @@ async function loadOrders(){
   orders=data||[]; render();
 }
 
+let orderFilter='all';
+let orderSearch='';
 function relativeTime(value){
   if(!value)return '-';
-  const t=new Date(value), now=new Date();
-  if(Number.isNaN(t.getTime()))return '-';
-  const diff=Math.max(0,now.getTime()-t.getTime());
-  const mins=Math.floor(diff/60000), hours=Math.floor(diff/3600000), days=Math.floor(diff/86400000);
+  const t=new Date(value).getTime(); if(Number.isNaN(t))return '-';
+  const diff=Math.max(0,Date.now()-t), mins=Math.floor(diff/60000), hours=Math.floor(mins/60), days=Math.floor(hours/24);
   if(mins<1)return 'BARU SAJA';
-  if(hours<1)return `${mins} MENIT YANG LALU`;
-  if(days<1)return `${hours} JAM YANG LALU`;
-  if(days===1)return '1 HARI YANG LALU';
-  return `${days} HARI YANG LALU`;
+  if(mins<60)return `${mins} MENIT YANG LALU`;
+  if(hours<24)return `${hours} JAM YANG LALU`;
+  if(days<30)return `${days} HARI YANG LALU`;
+  return `${Math.floor(days/30)} BULAN YANG LALU`;
 }
-function formatEventDate(value){
+function eventDate(value){
   if(!value)return '-';
-  const d=new Date(`${value}T00:00:00`);
-  if(Number.isNaN(d.getTime()))return value;
+  const d=new Date(`${value}T00:00:00`); if(Number.isNaN(d.getTime()))return value;
   return d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}).toUpperCase();
 }
 function paymentRow(d){
   const status=d.status||d.paymentStatus||'pending';
   const manageUrl=status==='approved' && d.manage_id?abs('/m/'+d.manage_id):'';
-  return `<div class="order-row" data-status="${esc(status)}" data-search="${esc(((d.groom||'')+' '+(d.bride||'')).toLowerCase())}">
-    <div class="order-main" data-order-toggle tabindex="0" role="button" aria-expanded="false">
+  const pair=esc((d.groom||'-')+' & '+(d.bride||'-'));
+  return `<article class="order-row" data-status="${esc(status)}">
+    <button type="button" class="order-summary" data-order-toggle aria-expanded="false">
       <span class="order-dot" aria-hidden="true"></span>
-      <div class="order-copy"><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong><div class="order-meta"><span>${esc(relativeTime(d.created_at))}</span><i></i><span>FOR ${esc(formatEventDate(d.event_date))}</span></div></div>
-      <div class="order-status">${statusBadge(status)}</div>
+      <span class="order-main"><strong>${pair}</strong><small>${relativeTime(d.created_at)} <i></i> FOR ${eventDate(d.event_date)}</small></span>
+      <span class="order-status">${statusBadge(status)}</span>
       <span class="order-chevron" aria-hidden="true">⌄</span>
-    </div>
-    <div class="order-actions"><button type="button" class="order-action" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageUrl?`<a class="order-action" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:`<span class="order-action order-action-disabled">Kelola</span>`}<button type="button" class="order-action order-action-danger" data-delete-order="${esc(d.id||'')}">Hapus</button></div>
-  </div>`
+    </button>
+    <div class="order-actions" aria-hidden="true"><div class="order-action-buttons"><button type="button" class="small-btn" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageUrl?`<a class="manage-url-btn" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:`<span class="manage-unavailable">Kelola</span>`}<button type="button" class="delete-order-btn" data-delete-order="${esc(d.id||'')}">Hapus</button></div></div>
+  </article>`;
+}
+function getFilteredOrders(){
+  const q=orderSearch.trim().toLowerCase();
+  return orders.filter(d=>{
+    const status=d.status||d.paymentStatus||'pending';
+    const pair=((d.groom||'')+' '+(d.bride||'')).toLowerCase();
+    return (orderFilter==='all'||status===orderFilter) && (!q||pair.includes(q));
+  });
+}
+function renderOrdersList(){
+  const list=document.getElementById('ordersList'); if(!list)return;
+  const filtered=getFilteredOrders();
+  list.innerHTML=filtered.length?filtered.map(paymentRow).join(''):'<div class="admin-empty">Tidak ada pesanan yang sesuai.</div>';
+  bind();
 }
 function render(){
   const has=orders.length>0;
@@ -94,37 +108,18 @@ function render(){
   document.getElementById('statPending').textContent=pending;
   document.getElementById('statActive').textContent=active;
   document.getElementById('statRevenue').textContent=money(revenue);
-  document.getElementById('orderStatTotal')&&(document.getElementById('orderStatTotal').textContent=orders.length);
-  document.getElementById('orderStatPending')&&(document.getElementById('orderStatPending').textContent=pending);
-  document.getElementById('orderStatApproved')&&(document.getElementById('orderStatApproved').textContent=active);
-  document.getElementById('orderStatRejected')&&(document.getElementById('orderStatRejected').textContent=rejected);
+  const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
+  setText('ordersStatTotal',orders.length);
+  setText('ordersStatPending',pending);
+  setText('ordersStatApproved',active);
+  setText('ordersStatRejected',rejected);
   document.getElementById('overviewPayments').innerHTML=has?paymentRow(orders[0]):'<div class="admin-empty">Belum ada pesanan.</div>';
   renderOrdersList();
   document.getElementById('customersList').innerHTML=has?orders.map(d=>`<div class="admin-customer"><div><span>Pasangan</span><strong>${esc(d.groom||'-')} &amp; ${esc(d.bride||'-')}</strong></div><div><span>WhatsApp</span><strong>${esc(d.whatsapp||'-')}</strong></div><div><span>Tema</span><strong>${esc(d.template_name||'-')}</strong></div></div>`).join(''):'<div class="admin-empty">Belum ada customer.</div>';
   document.getElementById('templatesList').innerHTML='<div class="template-stat-list">'+TEMPLATE_DATA.map(t=>`<div class="template-stat"><div><strong>${esc(t.name)}</strong><span>${esc(t.category)}</span></div><strong>${orders.filter(d=>Number(d.template_id)===t.id).length} pesanan</strong></div>`).join('')+'</div>';
   const devPrice=document.getElementById('devPriceInput'); if(devPrice)devPrice.value=developerSettings.invitation_price??currentPrice??'';
-  bind();
 }
-function renderOrdersList(){
-  const wrap=document.getElementById('ordersList'); if(!wrap)return;
-  const filter=document.querySelector('.orders-filter.active')?.dataset.orderFilter||'all';
-  const q=(document.getElementById('ordersSearch')?.value||'').trim().toLowerCase();
-  const list=orders.filter(d=>{
-    const status=d.status||d.paymentStatus||'pending';
-    const name=((d.groom||'')+' '+(d.bride||'')).toLowerCase();
-    return (filter==='all'||status===filter) && (!q||name.includes(q));
-  });
-  wrap.innerHTML=list.length?list.map(paymentRow).join(''):'<div class="admin-empty">Tidak ada pesanan yang sesuai.</div>';
-  bindOrderRows();
-}
-function bindOrderRows(){
-  document.querySelectorAll('[data-order-toggle]').forEach(el=>{
-    const toggle=()=>{const row=el.closest('.order-row');if(!row)return;const expanded=row.classList.toggle('is-expanded');el.setAttribute('aria-expanded',expanded?'true':'false')};
-    el.onclick=toggle; el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}};
-  });
-  document.querySelectorAll('[data-payment-detail]').forEach(b=>b.onclick=e=>{e.stopPropagation();openModal(b.dataset.paymentDetail)});
-  document.querySelectorAll('[data-delete-order]').forEach(b=>b.onclick=e=>{e.stopPropagation();deleteOrder(b.dataset.deleteOrder)});
-}
+
 async function openModal(id){
   const d=orders.find(x=>String(x.id)===String(id)) || orders[0]; if(!d)return; currentOrder=d;
   const modal=document.getElementById('paymentModal');
@@ -265,16 +260,26 @@ function bindDeveloper(){
 async function loadSettings(){await loadDeveloperSettings()}
 async function savePrice(){const input=document.getElementById('devPriceInput');if(input)await saveDeveloperSetting('invitation_price',String(Number(input.value||0)),'Harga undangan berhasil disimpan.')}
 function bind(){
-  bindOrderRows();
-  document.querySelectorAll('.orders-filter').forEach(b=>b.onclick=()=>{
-    document.querySelectorAll('.orders-filter').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
+  document.querySelectorAll('[data-order-toggle]').forEach(el=>{
+    const toggle=()=>{
+      const row=el.closest('.order-row'); if(!row)return;
+      const expanded=row.classList.toggle('is-expanded');
+      el.setAttribute('aria-expanded',expanded?'true':'false');
+      row.querySelector('.order-actions')?.setAttribute('aria-hidden',expanded?'false':'true');
+    };
+    el.onclick=toggle;
+    el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}};
+  });
+  document.querySelectorAll('[data-payment-detail]').forEach(b=>b.onclick=e=>{e.stopPropagation();openModal(b.dataset.paymentDetail)});
+  document.querySelectorAll('[data-delete-order]').forEach(b=>b.onclick=e=>{e.stopPropagation();deleteOrder(b.dataset.deleteOrder)});
+  document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchSection(b.dataset.go));
+  document.querySelectorAll('[data-order-filter]').forEach(b=>b.onclick=()=>{
+    orderFilter=b.dataset.orderFilter||'all';
+    document.querySelectorAll('[data-order-filter]').forEach(x=>x.classList.toggle('active',x===b));
     renderOrdersList();
   });
-  const search=document.getElementById('ordersSearch');
-  if(search && !search.dataset.bound){search.dataset.bound='1';search.addEventListener('input',renderOrdersList)}
-  document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchSection(b.dataset.go));
 }
+
 function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template',settings:'Pengaturan',media:'Media','dev-price':'Harga Undangan','dev-payment':'Pembayaran','dev-whatsapp':'WhatsApp','dev-reminder':'Notif Sudah 14 Hari Setelah Acara','dev-maintenance':'Maintenance Web'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open')}
 
 document.getElementById('googleLogin')?.addEventListener('click',async()=>{if(!supabaseReady()){openAdminDialog({kicker:'KONFIGURASI',title:'Supabase belum aktif',message:'Isi Supabase URL dan publishable key di js/supabase.js terlebih dahulu.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden');return;}const {error}=await supabaseClient.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/admin-dashboard'}});if(error){openAdminDialog({kicker:'LOGIN ADMIN',title:'Google Login gagal',message:error.message||'Terjadi kesalahan saat login.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden')}});
@@ -287,6 +292,7 @@ document.getElementById('paymentModal')?.addEventListener('click',e=>{if(e.targe
 document.addEventListener('click',e=>{if(e.target.matches('[data-dialog-close],[data-dialog-cancel]')){closeAdminDialog();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAdminDialog();});
 document.getElementById('adminLogout')?.addEventListener('click',async()=>{if(supabaseReady())await supabaseClient.auth.signOut();location.href='/admin'});
+document.getElementById('orderSearch')?.addEventListener('input',e=>{orderSearch=e.target.value||'';renderOrdersList()});
 
 (async()=>{
   if(!/\/(admin-dashboard(?:\.html)?)$/.test(location.pathname)) return;
