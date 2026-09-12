@@ -2,21 +2,9 @@ let currentPrice = null;
 let developerSettings = {};
 let paymentMethodsDraft = [];
 const TEMPLATE_DATA = [
-  {id:1,name:'Minimal 01',category:'Minimal',url:''},
-  {id:2,name:'Minimal 02',category:'Minimal',url:''},
-  {id:3,name:'Adat Nusantara',category:'Elegant',url:'templates/adat-nusantara.html'},
-  {id:4,name:'Elegant 02',category:'Elegant',url:''},
-  {id:5,name:'Romantic 01',category:'Romantic',url:'templates/romantic-selasar-rindu.html'},
-  {id:6,name:'Romantic 02',category:'Romantic',url:''},
-  {id:7,name:'Modern 01',category:'Modern',url:''},
-  {id:8,name:'Modern 02',category:'Modern',url:''},
-  {id:9,name:'Artistic 01',category:'Artistic',url:''},
-  {id:10,name:'Artistic 02',category:'Artistic',url:''},
-  {id:11,name:'Laras Bumi',category:'Nature',url:'templates/nature-laras-bumi.html'},
-  {id:12,name:'Nature 02',category:'Nature',url:''},
-  {id:13,name:'Playful Ceria',category:'Playful',url:'templates/playful-ceria.html'},
-  {id:14,name:'Islamic 01',category:'Islamic',url:''},
-  {id:15,name:'Islamic 02',category:'Islamic',url:''}
+  {id:5,name:'Selasar Rindu',category:'Romantic',url:'templates/romantic-selasar-rindu.html'},
+  {id:6,name:'Lembar Senandika',category:'Romantic',url:'templates/romantic-lembar-senandika.html'},
+  {id:9,name:'Ruang Sela',category:'Artistic',url:'templates/artistic-ruang-sela.html'}
 ];
 
 function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
@@ -341,9 +329,9 @@ function renderTemplates(){
   const total=sorted.length, pages=Math.max(1,Math.ceil(total/TEMPLATE_PAGE_SIZE));
   templatePage=Math.min(templatePage,pages);
   const shown=sorted.slice((templatePage-1)*TEMPLATE_PAGE_SIZE,templatePage*TEMPLATE_PAGE_SIZE);
-  const statCats=['Minimal','Elegant','Romantic','Modern','Adat Nusantara','Lainnya'];
+  const statCats=['Minimal','Elegant','Romantic','Modern','Artistic','Nature','Playful','Islamic'];
   const stat=document.getElementById('templateStats');
-  if(stat){ const counts=cat=>data.filter(t=>t.category===cat).length; const known=statCats.slice(0,5).reduce((n,c)=>n+(c==='Adat Nusantara'?data.filter(t=>t.name==='Adat Nusantara').length:counts(c)),0); stat.innerHTML=`<div class="template-stat-card"><span>SEMUA TEMPLATE</span><strong>${data.length}</strong><small>dalam ${categories.length-1} kategori</small></div>`+statCats.slice(0,5).map(cat=>{const n=cat==='Adat Nusantara'?data.filter(t=>t.name==='Adat Nusantara').length:counts(cat);return `<div class="template-stat-card"><span>${esc(cat)}</span><strong>${n}</strong><small>template</small></div>`}).join('')+`<div class="template-stat-card"><span>LAINNYA</span><strong>${Math.max(0,data.length-known)}</strong><small>template</small></div>`; }
+  if(stat){ const counts=cat=>data.filter(t=>t.category===cat).length; const known=statCats.reduce((n,c)=>n+counts(c),0); stat.innerHTML=`<div class="template-stat-card"><span>SEMUA TEMPLATE</span><strong>${data.length}</strong><small>dalam ${categories.length-1} kategori</small></div>`+statCats.map(cat=>{const n=counts(cat);return `<div class="template-stat-card"><span>${esc(cat)}</span><strong>${n}</strong><small>template</small></div>`}).join('')+`<div class="template-stat-card"><span>LAINNYA</span><strong>${Math.max(0,data.length-known)}</strong><small>template</small></div>`; }
   const tabs=document.getElementById('templateTabs');
   if(tabs) tabs.innerHTML=categories.map(cat=>`<button type="button" class="template-tab ${templateFilter===cat?'active':''}" data-template-filter="${esc(cat)}">${esc(cat)} <span>(${cat==='Semua'?data.length:data.filter(t=>t.category===cat).length})</span></button>`).join('');
   const list=document.getElementById('templatesList');

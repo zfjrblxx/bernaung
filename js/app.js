@@ -1,19 +1,7 @@
 const templates=[
-{id:1,name:'Minimal 01',cat:'Minimal',tone:'minimal'},
-{id:2,name:'Minimal 02',cat:'Minimal',tone:'clean'},
-{id:3,name:'Adat Nusantara',cat:'Elegant',tone:'elegant',url:'templates/adat-nusantara.html'},
-{id:4,name:'Elegant 02',cat:'Elegant',tone:'classic'},
-{id:5,name:'Romantic 01',cat:'Romantic',tone:'romantic',url:'templates/romantic-selasar-rindu.html'},
-{id:6,name:'Romantic 02',cat:'Romantic',tone:'soft'},
-{id:7,name:'Modern 01',cat:'Modern',tone:'modern'},
-{id:8,name:'Modern 02',cat:'Modern',tone:'bold'},
-{id:9,name:'Artistic 01',cat:'Artistic',tone:'art'},
-{id:10,name:'Artistic 02',cat:'Artistic',tone:'gallery'},
-{id:11,name:'Laras Bumi',cat:'Nature',tone:'nature',url:'templates/nature-laras-bumi.html'},
-{id:12,name:'Nature 02',cat:'Nature',tone:'garden'},
-{id:13,name:'Playful Ceria',cat:'Playful',tone:'playful',url:'templates/playful-ceria.html'},
-{id:14,name:'Islamic 01',cat:'Islamic',tone:'islamic'},
-{id:15,name:'Islamic 02',cat:'Islamic',tone:'mosque'}
+{id:5,name:'Selasar Rindu',cat:'Romantic',tone:'romantic',url:'templates/romantic-selasar-rindu.html'},
+{id:6,name:'Lembar Senandika',cat:'Romantic',tone:'soft',url:'templates/romantic-lembar-senandika.html'},
+{id:9,name:'Ruang Sela',cat:'Artistic',tone:'art',url:'templates/artistic-ruang-sela.html'}
 ];
 const cats=['Semua','Minimal','Elegant','Romantic','Modern','Artistic','Nature','Playful','Islamic'];
 function getData(){try{return JSON.parse(localStorage.getItem('bernaungData')||'{}')}catch{return {}}}
