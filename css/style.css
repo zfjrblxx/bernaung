@@ -2596,3 +2596,58 @@ body.admin-body #adminDefaultNameModal .admin-name-box input:focus{border-color:
   .default-list-name{font-size:14px}
   body.admin-body #adminDefaultNameModal .admin-name-box{padding:22px 18px}
 }
+
+/* MEDIA — polished action buttons */
+body.admin-body .default-list-row .danger-text{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:0 13px;
+  border:1px solid #d9b8b3;
+  border-radius:8px;
+  background:#fff8f7;
+  color:#9b4b43;
+  font:inherit;
+  font-size:10px;
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
+}
+body.admin-body .default-list-row .danger-text:hover{
+  background:#f8e9e7;
+  border-color:#c98f88;
+  color:#833b35;
+}
+body.admin-body .media-primary-btn,
+body.admin-body .media-empty-action{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:36px;
+  padding:0 14px;
+  border:1px solid #183c2f;
+  border-radius:8px;
+  background:#183c2f;
+  color:#fff;
+  font:inherit;
+  font-size:10px;
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease,transform .15s ease;
+}
+body.admin-body .media-primary-btn:hover,
+body.admin-body .media-empty-action:hover{
+  background:#245241;
+  border-color:#245241;
+}
+body.admin-body .media-primary-btn:active,
+body.admin-body .media-empty-action:active{
+  transform:translateY(1px);
+}
+@media(max-width:620px){
+  body.admin-body .media-manager-head .media-primary-btn{width:100%;}
+  body.admin-body .media-empty-action{min-width:132px;}
+}
