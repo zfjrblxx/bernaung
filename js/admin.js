@@ -265,6 +265,65 @@ function applyOrderFilters(){
 let templatePage = 1;
 const TEMPLATE_PAGE_SIZE = 8;
 let templateFilter = 'Semua';
+let adminTemplates = [];
+
+function loadAdminTemplates(){
+  try{
+    const raw=localStorage.getItem('bernaung_admin_templates');
+    if(raw){
+      const parsed=JSON.parse(raw);
+      if(Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  }catch(e){console.warn('Gagal memuat template admin',e)}
+  return TEMPLATE_DATA.map(t=>({...t,description:templateDescription(t)}));
+}
+function saveAdminTemplates(){
+  try{localStorage.setItem('bernaung_admin_templates',JSON.stringify(adminTemplates));}catch(e){console.warn('Gagal menyimpan template admin',e)}
+}
+function templateList(){ return adminTemplates.length ? adminTemplates : (adminTemplates=loadAdminTemplates()); }
+function nextTemplateId(){ return templateList().reduce((m,t)=>Math.max(m,Number(t.id)||0),0)+1; }
+function templateCategories(){ return ['Semua',...Array.from(new Set(templateList().map(t=>t.category).filter(Boolean)))]; }
+function ensureTemplateDialog(){
+  let el=document.getElementById('templateEditorModal');
+  if(el)return el;
+  el=document.createElement('div');
+  el.id='templateEditorModal';
+  el.className='admin-action-modal template-editor-modal';
+  el.setAttribute('aria-hidden','true');
+  el.innerHTML=`<div class="admin-action-backdrop" data-template-close></div><div class="admin-action-box template-editor-box" role="dialog" aria-modal="true" aria-labelledby="templateEditorTitle"><button type="button" class="admin-action-close" data-template-close>×</button><span class="admin-action-kicker">TEMPLATE MANAGER</span><h2 id="templateEditorTitle">Tambah Template</h2><p id="templateEditorMessage">Isi detail template yang akan tersedia untuk customer.</p><div class="template-editor-fields"><label>Nama template<input id="templateEditorName" type="text" placeholder="Contoh: Elegant 03" autocomplete="off"></label><label>Kategori<input id="templateEditorCategory" type="text" placeholder="Contoh: Elegant" autocomplete="off"></label><label>URL template<input id="templateEditorUrl" type="url" placeholder="templates/nama-template.html" autocomplete="off"></label><label>Deskripsi<textarea id="templateEditorDescription" rows="3" placeholder="Deskripsi singkat template."></textarea></label></div><div class="admin-action-buttons"><button type="button" class="admin-dialog-cancel" data-template-close>Batal</button><button type="button" class="admin-dialog-confirm" id="templateEditorSave">Simpan template</button></div></div>`;
+  document.body.appendChild(el);
+  return el;
+}
+function closeTemplateEditor(){const el=document.getElementById('templateEditorModal');if(el){el.classList.remove('show');el.setAttribute('aria-hidden','true')}}
+function openTemplateEditor(template=null){
+  const el=ensureTemplateDialog();
+  el.dataset.editId=template?String(template.id):'';
+  el.querySelector('#templateEditorTitle').textContent=template?`Edit ${template.name}`:'Tambah Template';
+  el.querySelector('#templateEditorMessage').textContent=template?'Perbarui detail template yang dipilih.':'Isi detail template yang akan tersedia untuk customer.';
+  el.querySelector('#templateEditorName').value=template?.name||'';
+  el.querySelector('#templateEditorCategory').value=template?.category||'';
+  el.querySelector('#templateEditorUrl').value=template?.url||'';
+  el.querySelector('#templateEditorDescription').value=template?.description||'';
+  el.classList.add('show');el.setAttribute('aria-hidden','false');
+  setTimeout(()=>el.querySelector('#templateEditorName').focus(),30);
+}
+function saveTemplateFromEditor(){
+  const el=document.getElementById('templateEditorModal'); if(!el)return;
+  const name=el.querySelector('#templateEditorName').value.trim();
+  const category=el.querySelector('#templateEditorCategory').value.trim();
+  const url=el.querySelector('#templateEditorUrl').value.trim();
+  const description=el.querySelector('#templateEditorDescription').value.trim();
+  if(!name||!category){showAdminNotice('Data belum lengkap','Nama template dan kategori wajib diisi.');return;}
+  const list=templateList(); const editId=el.dataset.editId;
+  if(editId){
+    const item=list.find(t=>String(t.id)===editId);
+    if(item) Object.assign(item,{name,category,url,description:description||templateDescription({category})});
+  }else{
+    list.push({id:nextTemplateId(),name,category,url,description:description||templateDescription({category})});
+  }
+  saveAdminTemplates(); closeTemplateEditor(); templatePage=1; renderTemplates();
+  showAdminNotice('Template tersimpan',editId?'Perubahan template berhasil disimpan.':'Template baru berhasil ditambahkan.');
+}
 
 function templateOrders(t){ return orders.filter(d=>Number(d.template_id)===Number(t.id)).length; }
 function templateInitial(t){ return String(t.name||'T').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase(); }
@@ -275,17 +334,18 @@ function templateDescription(t){
 function renderTemplates(){
   const q=(document.getElementById('templateSearch')?.value||'').trim().toLowerCase();
   const sort=document.getElementById('templateSort')?.value||'newest';
-  const categories=['Semua',...Array.from(new Set(TEMPLATE_DATA.map(t=>t.category)))];
-  const filtered=TEMPLATE_DATA.filter(t=>(templateFilter==='Semua'||t.category===templateFilter)&&(!q||(`${t.name} ${t.category}`).toLowerCase().includes(q)));
+  const data=templateList();
+  const categories=templateCategories();
+  const filtered=data.filter(t=>(templateFilter==='Semua'||t.category===templateFilter)&&(!q||(`${t.name} ${t.category}`).toLowerCase().includes(q)));
   const sorted=[...filtered].sort((a,b)=>sort==='name'?a.name.localeCompare(b.name):sort==='orders'?templateOrders(b)-templateOrders(a):a.id-b.id);
   const total=sorted.length, pages=Math.max(1,Math.ceil(total/TEMPLATE_PAGE_SIZE));
   templatePage=Math.min(templatePage,pages);
   const shown=sorted.slice((templatePage-1)*TEMPLATE_PAGE_SIZE,templatePage*TEMPLATE_PAGE_SIZE);
   const statCats=['Minimal','Elegant','Romantic','Modern','Adat Nusantara','Lainnya'];
   const stat=document.getElementById('templateStats');
-  if(stat) stat.innerHTML=`<div class="template-stat-card"><span>SEMUA TEMPLATE</span><strong>${TEMPLATE_DATA.length}</strong><small>dalam ${categories.length-1} kategori</small></div>`+statCats.slice(0,5).map(cat=>{const n=cat==='Adat Nusantara'?TEMPLATE_DATA.filter(t=>t.name==='Adat Nusantara').length:TEMPLATE_DATA.filter(t=>t.category===cat).length;return `<div class="template-stat-card"><span>${esc(cat)}</span><strong>${n}</strong><small>template</small></div>`}).join('')+`<div class="template-stat-card"><span>LAINNYA</span><strong>${TEMPLATE_DATA.length-statCats.slice(0,5).reduce((n,c)=>n+(c==='Adat Nusantara'?TEMPLATE_DATA.filter(t=>t.name==='Adat Nusantara').length:TEMPLATE_DATA.filter(t=>t.category===c).length),0)}</strong><small>template</small></div>`;
+  if(stat){ const counts=cat=>data.filter(t=>t.category===cat).length; const known=statCats.slice(0,5).reduce((n,c)=>n+(c==='Adat Nusantara'?data.filter(t=>t.name==='Adat Nusantara').length:counts(c)),0); stat.innerHTML=`<div class="template-stat-card"><span>SEMUA TEMPLATE</span><strong>${data.length}</strong><small>dalam ${categories.length-1} kategori</small></div>`+statCats.slice(0,5).map(cat=>{const n=cat==='Adat Nusantara'?data.filter(t=>t.name==='Adat Nusantara').length:counts(cat);return `<div class="template-stat-card"><span>${esc(cat)}</span><strong>${n}</strong><small>template</small></div>`}).join('')+`<div class="template-stat-card"><span>LAINNYA</span><strong>${Math.max(0,data.length-known)}</strong><small>template</small></div>`; }
   const tabs=document.getElementById('templateTabs');
-  if(tabs) tabs.innerHTML=categories.map(cat=>`<button type="button" class="template-tab ${templateFilter===cat?'active':''}" data-template-filter="${esc(cat)}">${esc(cat)} <span>(${cat==='Semua'?TEMPLATE_DATA.length:TEMPLATE_DATA.filter(t=>t.category===cat).length})</span></button>`).join('');
+  if(tabs) tabs.innerHTML=categories.map(cat=>`<button type="button" class="template-tab ${templateFilter===cat?'active':''}" data-template-filter="${esc(cat)}">${esc(cat)} <span>(${cat==='Semua'?data.length:data.filter(t=>t.category===cat).length})</span></button>`).join('');
   const list=document.getElementById('templatesList');
   if(list) list.innerHTML=shown.length?shown.map(t=>{const n=templateOrders(t);const thumb=t.url?`<iframe src="${esc(t.url)}" title="${esc(t.name)}" loading="lazy"></iframe>`:`<div class="template-placeholder"><span>${esc(t.category.toUpperCase())}</span><strong>${esc(templateInitial(t))}</strong><small>${esc(t.name)}</small></div>`;return `<article class="template-admin-card"><div class="template-admin-thumb">${thumb}<span class="template-category-badge">${esc(t.category)}</span></div><div class="template-admin-content"><div class="template-card-top"><div><h3>${esc(t.name)}</h3><p>${esc(templateDescription(t))}</p></div><button type="button" class="template-more" aria-label="Aksi ${esc(t.name)}">•••</button></div><div class="template-order-count">♧ ${n} pesanan</div><div class="template-card-actions">${t.url?`<a class="template-preview-btn" href="${esc(t.url)}" target="_blank" rel="noopener">◉&nbsp; Preview</a>`:`<button type="button" class="template-preview-btn" data-template-preview="${esc(t.id)}">◉&nbsp; Preview</button>`}<button type="button" class="template-edit-btn" data-template-edit="${esc(t.id)}">✎&nbsp; Edit</button></div></div></article>`}).join(''):'<div class="template-no-results">Tidak ada template yang cocok.</div>';
   const label=document.getElementById('templateCountLabel'); if(label) label.textContent=`Menampilkan ${shown.length} dari ${total} template`;
@@ -297,8 +357,8 @@ function bindTemplateControls(){
   document.getElementById('templateSearch')?.addEventListener('input',()=>{templatePage=1;renderTemplates()});
   document.getElementById('templateSort')?.addEventListener('change',()=>{templatePage=1;renderTemplates()});
   document.querySelectorAll('[data-template-page]').forEach(b=>b.onclick=()=>{if(b.disabled)return;const v=b.dataset.templatePage;if(v==='prev')templatePage--;else if(v==='next')templatePage++;else templatePage=Number(v);renderTemplates()});
-  document.querySelectorAll('[data-template-preview]').forEach(b=>b.onclick=()=>openAdminDialog({kicker:'TEMPLATE',title:'Preview belum tersedia',message:'Template ini belum memiliki halaman preview yang terhubung.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}}));
-  document.querySelectorAll('[data-template-edit]').forEach(b=>b.onclick=()=>{const t=TEMPLATE_DATA.find(x=>String(x.id)===String(b.dataset.templateEdit));openAdminDialog({kicker:'TEMPLATE',title:`Edit ${t?.name||'template'}`,message:'Editor template akan digunakan untuk mengatur file dan detail template ini.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}})});
+  document.querySelectorAll('[data-template-preview]').forEach(b=>b.onclick=()=>{const t=templateList().find(x=>String(x.id)===String(b.dataset.templatePreview));if(t?.url)window.open(t.url,'_blank','noopener');else openAdminDialog({kicker:'TEMPLATE',title:'Preview belum tersedia',message:'Template ini belum memiliki halaman preview yang terhubung.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}})});
+  document.querySelectorAll('[data-template-edit]').forEach(b=>b.onclick=()=>{const t=templateList().find(x=>String(x.id)===String(b.dataset.templateEdit));if(t)openTemplateEditor(t)});
 }
 
 function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template',settings:'Pengaturan',media:'Media','dev-price':'Harga Undangan','dev-payment':'Pembayaran','dev-whatsapp':'WhatsApp','dev-reminder':'Notif Sudah 14 Hari Setelah Acara','dev-maintenance':'Maintenance Web'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open')}
@@ -313,7 +373,12 @@ document.getElementById('paymentModal')?.addEventListener('click',e=>{if(e.targe
 document.addEventListener('click',e=>{if(e.target.matches('[data-dialog-close],[data-dialog-cancel]')){closeAdminDialog();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAdminDialog();});
 document.getElementById('adminLogout')?.addEventListener('click',async()=>{if(supabaseReady())await supabaseClient.auth.signOut();location.href='/admin'});
-document.getElementById('addTemplateBtn')?.addEventListener('click',()=>openAdminDialog({kicker:'TEMPLATE',title:'Tambah Template',message:'Tambahkan template baru ke koleksi Bernaung. Pengaturan file template dapat dihubungkan setelah template dibuat.',confirmText:'Siap',cancelText:'Batal',onConfirm:()=>{}}));
+document.getElementById('addTemplateBtn')?.addEventListener('click',()=>openTemplateEditor());
+document.addEventListener('click',e=>{if(e.target.matches('[data-template-close]'))closeTemplateEditor()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTemplateEditor()});
+document.addEventListener('click',e=>{if(e.target.id==='templateEditorSave')saveTemplateFromEditor()});
+
+adminTemplates=loadAdminTemplates();
 
 (async()=>{
   if(!/\/(admin-dashboard(?:\.html)?)$/.test(location.pathname)) return;
