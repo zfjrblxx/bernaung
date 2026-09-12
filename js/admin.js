@@ -53,15 +53,43 @@ async function loadOrders(){
   orders=data||[]; render();
 }
 
+function formatEventDate(value){
+  if(!value)return '-';
+  const d=new Date(String(value).length===10?value+'T00:00:00':value);
+  if(Number.isNaN(d.getTime()))return String(value);
+  return new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric'}).format(d);
+}
+function relativeCreated(value){
+  if(!value)return '-';
+  const d=new Date(value), now=new Date();
+  if(Number.isNaN(d.getTime()))return '-';
+  const seconds=Math.max(0,Math.floor((now-d)/1000));
+  if(seconds<60)return 'just now';
+  const minutes=Math.floor(seconds/60);
+  if(minutes<60)return `${minutes} ${minutes===1?'minute':'minutes'} ago`;
+  const hours=Math.floor(minutes/60);
+  if(hours<24)return `${hours} ${hours===1?'hour':'hours'} ago`;
+  const days=Math.floor(hours/24);
+  if(days<30)return `${days} ${days===1?'day':'days'} ago`;
+  const months=Math.floor(days/30);
+  if(months<12)return `${months} ${months===1?'month':'months'} ago`;
+  const years=Math.floor(days/365);
+  return `${years} ${years===1?'year':'years'} ago`;
+}
 function paymentRow(d){
   const status=d.status||d.paymentStatus||'pending';
-  const manageUrl=status==='approved' && d.manage_id?abs('/m/'+d.manage_id):'';
+  const manageUrl=d.manage_id?abs('/m/'+d.manage_id):'';
+  const eventDate=formatEventDate(d.event_date);
+  const created=relativeCreated(d.created_at);
+  const manageAction=manageUrl
+    ? `<a class="manage-url-btn" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`
+    : `<button type="button" class="manage-url-btn is-disabled" disabled>Kelola ↗</button>`;
   return `<div class="admin-table-row order-row">
     <div class="order-summary" data-order-toggle tabindex="0" role="button" aria-expanded="false">
-      <div class="order-pair"><span>Pasangan</span><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong></div>
-      <div class="order-status"><span>Status</span>${statusBadge(status)}</div>
+      <div class="order-main"><div class="order-name"><span class="order-dot">■</span><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong></div><div class="order-meta"><span>${esc(created)}</span><span>for ${esc(eventDate)}</span></div></div>
+      <div class="order-status">${statusBadge(status)}</div>
     </div>
-    <div class="order-actions"><span>Aksi</span><div class="order-action-buttons"><button class="small-btn" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageUrl?`<a class="manage-url-btn" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:`<span class="manage-unavailable">Belum tersedia</span>`}<button type="button" class="delete-order-btn" data-delete-order="${esc(d.id||'')}">Hapus</button></div></div>
+    <div class="order-actions"><div class="order-action-buttons"><button class="small-btn" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageAction}<button type="button" class="delete-order-btn" data-delete-order="${esc(d.id||'')}">Hapus</button></div></div>
   </div>`
 }
 
