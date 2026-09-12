@@ -6,7 +6,7 @@ const TEMPLATE_DATA = [
   {id:2,name:'Minimal 02',category:'Minimal',url:''},
   {id:3,name:'Adat Nusantara',category:'Elegant',url:'templates/adat-nusantara.html'},
   {id:4,name:'Elegant 02',category:'Elegant',url:''},
-  {id:5,name:'Romantic 01',category:'Romantic',url:''},
+  {id:5,name:'Romantic 01',category:'Romantic',url:'templates/romantic-selasar-rindu.html'},
   {id:6,name:'Romantic 02',category:'Romantic',url:''},
   {id:7,name:'Modern 01',category:'Modern',url:''},
   {id:8,name:'Modern 02',category:'Modern',url:''},
