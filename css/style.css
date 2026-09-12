@@ -2399,7 +2399,7 @@ body.admin-body .order-right{display:flex;align-items:center;gap:18px;min-width:
 body.admin-body .status-badge{padding:6px 9px;font-size:8px!important;border:1px solid transparent}
 body.admin-body .order-chevron{display:inline-flex;width:18px;justify-content:center;color:#74817a;font-size:16px;line-height:1;transform:translateY(-1px)}
 body.admin-body .order-row.is-expanded .order-chevron{transform:rotate(180deg) translateY(1px)}
-body.admin-body .order-actions{display:none;align-items:center;gap:0;padding:0 0 14px 28px;border:0;background:transparent}
+body.admin-body .order-actions{display:none;align-items:center;justify-content:flex-end;gap:0;padding:0 0 14px;border:0;background:transparent}
 body.admin-body .order-row.is-expanded .order-actions{display:flex}
 body.admin-body .order-action{min-height:32px;padding:0 14px;border:0;border-right:1px solid #dce2dd;background:transparent;color:#245843;font-size:9px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center}
 body.admin-body .order-action:first-child{padding-left:0}
@@ -2477,7 +2477,7 @@ body.admin-body .admin-nav.active{background:#294338}
  body.admin-body .order-right{gap:7px;min-width:82px}
  body.admin-body .status-badge{padding:5px 7px;font-size:7px!important}
  body.admin-body .order-chevron{font-size:14px;width:13px}
- body.admin-body .order-actions{padding:0 0 12px 21px}
+ body.admin-body .order-actions{padding:0 0 12px}
  body.admin-body .order-action{font-size:8px;min-height:30px;padding:0 10px}
  body.admin-body .order-action:first-child{padding-left:0}
  body.admin-body .media-manager-grid{grid-template-columns:1fr;gap:30px}
