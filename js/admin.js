@@ -43,6 +43,8 @@ function statusBadge(s){return `<span class="status-badge ${s==='approved'?'appr
 
 let currentOrder = null;
 let orders = [];
+let orderFilter = 'all';
+let orderSearch = '';
 
 async function loadOrders(){
   if(!supabaseReady()){
@@ -53,43 +55,31 @@ async function loadOrders(){
   orders=data||[]; render();
 }
 
-function formatEventDate(value){
-  if(!value)return '-';
-  const d=new Date(String(value).length===10?value+'T00:00:00':value);
-  if(Number.isNaN(d.getTime()))return String(value);
-  return new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric'}).format(d);
+function relativeTime(value){
+  if(!value)return'-';
+  const t=new Date(value).getTime();
+  if(!Number.isFinite(t))return'-';
+  const diff=Math.max(0,Date.now()-t), mins=Math.floor(diff/60000), hours=Math.floor(mins/60), days=Math.floor(hours/24);
+  if(mins<1)return'BARU SAJA';
+  if(mins<60)return`${mins} MINUTES AGO`;
+  if(hours<24)return`${hours} ${hours===1?'HOUR':'HOURS'} AGO`;
+  return`${days} ${days===1?'DAY':'DAYS'} AGO`;
 }
-function relativeCreated(value){
-  if(!value)return '-';
-  const d=new Date(value), now=new Date();
-  if(Number.isNaN(d.getTime()))return '-';
-  const seconds=Math.max(0,Math.floor((now-d)/1000));
-  if(seconds<60)return 'just now';
-  const minutes=Math.floor(seconds/60);
-  if(minutes<60)return `${minutes} ${minutes===1?'minute':'minutes'} ago`;
-  const hours=Math.floor(minutes/60);
-  if(hours<24)return `${hours} ${hours===1?'hour':'hours'} ago`;
-  const days=Math.floor(hours/24);
-  if(days<30)return `${days} ${days===1?'day':'days'} ago`;
-  const months=Math.floor(days/30);
-  if(months<12)return `${months} ${months===1?'month':'months'} ago`;
-  const years=Math.floor(days/365);
-  return `${years} ${years===1?'year':'years'} ago`;
+function formatEventDate(value){
+  if(!value)return'TANGGAL BELUM DIATUR';
+  const d=new Date(value+'T00:00:00');
+  if(Number.isNaN(d.getTime()))return value;
+  return new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric'}).format(d).toUpperCase();
 }
 function paymentRow(d){
   const status=d.status||d.paymentStatus||'pending';
-  const manageUrl=d.manage_id?abs('/m/'+d.manage_id):'';
-  const eventDate=formatEventDate(d.event_date);
-  const created=relativeCreated(d.created_at);
-  const manageAction=manageUrl
-    ? `<a class="manage-url-btn" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`
-    : `<button type="button" class="manage-url-btn is-disabled" disabled>Kelola ↗</button>`;
+  const manageUrl=status==='approved' && d.manage_id?abs('/m/'+d.manage_id):'';
   return `<div class="admin-table-row order-row">
     <div class="order-summary" data-order-toggle tabindex="0" role="button" aria-expanded="false">
-      <div class="order-main"><div class="order-name"><span class="order-dot">■</span><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong></div><div class="order-meta"><span>${esc(created)}</span><span>for ${esc(eventDate)}</span></div></div>
+      <div class="order-pair"><strong><i aria-hidden="true">■</i>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong><div class="order-meta"><span>${esc(relativeTime(d.created_at))}</span><span>FOR ${esc(formatEventDate(d.event_date))}</span></div></div>
       <div class="order-status">${statusBadge(status)}</div>
     </div>
-    <div class="order-actions"><div class="order-action-buttons"><button class="small-btn" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageAction}<button type="button" class="delete-order-btn" data-delete-order="${esc(d.id||'')}">Hapus</button></div></div>
+    <div class="order-actions"><span>Aksi</span><div class="order-action-buttons"><button class="small-btn" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageUrl?`<a class="manage-url-btn" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:`<span class="manage-unavailable">Belum tersedia</span>`}<button type="button" class="delete-order-btn" data-delete-order="${esc(d.id||'')}">Hapus</button></div></div>
   </div>`
 }
 
@@ -103,7 +93,15 @@ function render(){
   document.getElementById('statActive').textContent=active;
   document.getElementById('statRevenue').textContent=money(revenue);
   document.getElementById('overviewPayments').innerHTML=has?paymentRow(orders[0]):'<div class="admin-empty">Belum ada pesanan.</div>';
-  document.getElementById('ordersList').innerHTML=has?orders.map(paymentRow).join(''):'<div class="admin-empty">Belum ada pesanan.</div>';
+  const filteredOrders=orders.filter(d=>{
+    const status=d.status||d.paymentStatus||'pending';
+    const matchFilter=orderFilter==='all'||status===orderFilter;
+    const hay=((d.groom||'')+' '+(d.bride||'')).toLowerCase();
+    return matchFilter && (!orderSearch || hay.includes(orderSearch));
+  });
+  document.getElementById('ordersList').innerHTML=filteredOrders.length?filteredOrders.map(paymentRow).join(''):'<div class="admin-empty">Tidak ada pesanan yang sesuai.</div>';
+  const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  setText('ordersStatTotal',orders.length);setText('ordersStatPending',pending);setText('ordersStatApproved',active);setText('ordersStatRejected',orders.filter(x=>(x.status||x.paymentStatus)==='rejected').length);
   document.getElementById('customersList').innerHTML=has?orders.map(d=>`<div class="admin-customer"><div><span>Pasangan</span><strong>${esc(d.groom||'-')} &amp; ${esc(d.bride||'-')}</strong></div><div><span>WhatsApp</span><strong>${esc(d.whatsapp||'-')}</strong></div><div><span>Tema</span><strong>${esc(d.template_name||'-')}</strong></div></div>`).join(''):'<div class="admin-empty">Belum ada customer.</div>';
   document.getElementById('templatesList').innerHTML='<div class="template-stat-list">'+TEMPLATE_DATA.map(t=>`<div class="template-stat"><div><strong>${esc(t.name)}</strong><span>${esc(t.category)}</span></div><strong>${orders.filter(d=>Number(d.template_id)===t.id).length} pesanan</strong></div>`).join('')+'</div>';
   const devPrice=document.getElementById('devPriceInput'); if(devPrice)devPrice.value=developerSettings.invitation_price??currentPrice??'';
@@ -263,6 +261,9 @@ function bind(){
   document.querySelectorAll('[data-payment-detail]').forEach(b=>b.onclick=e=>{e.stopPropagation();openModal(b.dataset.paymentDetail)});
   document.querySelectorAll('[data-delete-order]').forEach(b=>b.onclick=e=>{e.stopPropagation();deleteOrder(b.dataset.deleteOrder)});
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchSection(b.dataset.go));
+  document.querySelectorAll('[data-order-filter]').forEach(b=>b.onclick=()=>{orderFilter=b.dataset.orderFilter;document.querySelectorAll('[data-order-filter]').forEach(x=>x.classList.toggle('active',x===b));render()});
+  const search=document.getElementById('orderSearch');
+  if(search){search.value=orderSearch;search.oninput=()=>{orderSearch=search.value.trim().toLowerCase();render()};}
 }
 function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template',settings:'Pengaturan',media:'Media','dev-price':'Harga Undangan','dev-payment':'Pembayaran','dev-whatsapp':'WhatsApp','dev-reminder':'Notif Sudah 14 Hari Setelah Acara','dev-maintenance':'Maintenance Web'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open')}
 
