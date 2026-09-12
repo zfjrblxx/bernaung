@@ -2482,3 +2482,24 @@ body.admin-body .admin-nav.active{background:#294338}
  body.admin-body .order-action:first-child{padding-left:0}
  body.admin-body .media-manager-grid{grid-template-columns:1fr;gap:30px}
 }
+
+/* FIX — aksi pembayaran harus selalu horizontal */
+body.admin-body .order-row .order-actions{
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  width:100% !important;
+  box-sizing:border-box;
+}
+body.admin-body .order-row .order-action{
+  flex:0 0 auto !important;
+  width:auto !important;
+  white-space:nowrap !important;
+}
+@media(max-width:700px){
+  body.admin-body .order-row .order-actions{
+    overflow-x:auto !important;
+    justify-content:flex-start !important;
+  }
+}
