@@ -74,7 +74,7 @@ function paymentRow(d){
     <button type="button" class="order-summary" data-order-toggle aria-expanded="false">
       <span class="order-dot" aria-hidden="true"></span>
       <span class="order-main"><strong>${esc(pair)}</strong><small>${esc(relativeTime(d.created_at))}<i>|</i> FOR ${esc(eventLabel(d.event_date))}</small></span>
-      <span class="order-right">${statusBadge(status)}<span class="order-chevron" aria-hidden="true">⌄</span></span>
+      <span class="order-right">${statusBadge(status)}</span>
     </button>
     <div class="order-actions" aria-hidden="true"><button type="button" class="order-action" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageUrl?`<a class="order-action" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:`<span class="order-action is-disabled">Kelola</span>`}<button type="button" class="order-action is-danger" data-delete-order="${esc(d.id||'')}">Hapus</button></div>
   </article>`
