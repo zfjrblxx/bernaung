@@ -516,7 +516,7 @@ Set these Vercel environment variables:
 - `GERAIKITA_API_KEY` — required; keep the `gk-...` key server-side only
 - `GERAIKITA_MODEL` — optional, defaults to `claude-sonnet-5`
 - `SUPABASE_URL` — required for admin-session verification
-- `SUPABASE_ANON_KEY` — required for admin-session verification
+- `SUPABASE_PUBLISHABLE_KEY` — required for admin-session verification
 
 The endpoint verifies the logged-in Supabase admin session before calling GeraiKita. It uses the OpenAI-compatible Chat Completions endpoint at `https://ai.geraikita.com/v1/chat/completions` with `claude-sonnet-5`.
 

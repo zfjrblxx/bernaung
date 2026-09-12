@@ -8,5 +8,43 @@ function localIdeas(cat,theme){
 }
 function render(list,source='ai'){suggestions=list||[];results.innerHTML=`<div class="td-result-head"><span class="eyebrow">${source==='ai'?'AI SUGGESTIONS':'LOCAL FALLBACK'}</span><h2>Mana yang paling terasa Bernaung?</h2></div><div class="td-cards">${suggestions.map((s,i)=>`<article class="td-card"><div class="td-card-number">0${i+1}</div><span class="td-card-cat">${esc(category.value)}</span><h3>${esc(s.name)}</h3><p>${esc(s.concept)}</p><div class="td-meta"><div><b>Palette</b><span>${esc(s.palette)}</span></div><div><b>Typography</b><span>${esc(s.typography)}</span></div><div><b>Signature</b><span>${esc(s.signatureVisual)}</span></div></div><button class="btn btn-dark td-use" data-index="${i}" type="button">Pakai konsep ini</button></article>`).join('')}</div>`;document.querySelectorAll('.td-use').forEach(b=>b.onclick=()=>useSuggestion(Number(b.dataset.index)))}
 function useSuggestion(i){const s=suggestions[i];if(!s)return;const theme=s.name||name.value.trim()||'Tema Baru';const master=`Buat template undangan pernikahan digital baru untuk Bernaung.\n\nKATEGORI: ${category.value}\nNAMA TEMA: ${theme}\n\nART DIRECTION:\n${s.artDirection||s.concept}\n\nPALETTE:\n${s.palette}\n\nTYPOGRAPHY:\n${s.typography}\n\nSIGNATURE VISUAL:\n${s.signatureVisual}\n\nLAYOUT DIRECTION:\n${s.layoutDirection}\n\nPHOTO DIRECTION:\n${s.photoDirection}\n\nMOTION DIRECTION:\n${s.motionDirection}\n\n${TD_FIXED}`;prompt.value=master;promptPanel.hidden=false;promptPanel.scrollIntoView({behavior:'smooth',block:'start'})}
-suggest.addEventListener('click',async()=>{suggest.disabled=true;suggest.textContent='Mencari arah visual…';results.innerHTML='<div class="td-loading">AI sedang mencari 3 konsep yang benar-benar berbeda.</div>';promptPanel.hidden=true;try{let session=null;if(window.supabaseClient){session=(await window.supabaseClient.auth.getSession()).data.session}if(!session)throw new Error('Session admin belum aktif.');const r=await fetch('/api/theme-suggest',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({category:category.value,themeName:name.value.trim()})});const data=await r.json();if(!r.ok)throw new Error(data.error||'AI gagal.');render(data.suggestions,'ai')}catch(e){render(localIdeas(category.value,name.value.trim()),'local fallback');const note=document.createElement('p');note.className='td-fallback-note';note.textContent=e.message+' Menampilkan saran lokal agar workflow tetap bisa dipakai.';results.appendChild(note)}finally{suggest.disabled=false;suggest.textContent='✦ Cari 3 ide tema'}});
+async function getAdminSession(){
+  const client=window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+  if(!client) throw new Error('Supabase client belum siap.');
+  for(let attempt=0;attempt<4;attempt++){
+    const {data,error}=await client.auth.getSession();
+    if(error) throw error;
+    if(data?.session) return data.session;
+    if(attempt<3) await new Promise(resolve=>setTimeout(resolve,250));
+  }
+  throw new Error('Login admin diperlukan. Silakan login terlebih dahulu.');
+}
+
+suggest.addEventListener('click',async()=>{
+  suggest.disabled=true;
+  suggest.textContent='Mencari arah visual…';
+  results.innerHTML='<div class="td-loading">AI sedang mencari 3 konsep yang benar-benar berbeda.</div>';
+  promptPanel.hidden=true;
+  try{
+    const session=await getAdminSession();
+    const r=await fetch('/api/theme-suggest',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},
+      body:JSON.stringify({category:category.value,themeName:name.value.trim()})
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(data.error||`AI gagal (${r.status}).`);
+    if(!Array.isArray(data.suggestions)||data.suggestions.length!==3) throw new Error('AI tidak mengembalikan 3 konsep.');
+    render(data.suggestions,'ai');
+  }catch(e){
+    render(localIdeas(category.value,name.value.trim()),'local fallback');
+    const note=document.createElement('p');
+    note.className='td-fallback-note';
+    note.textContent=(e?.message||'Theme Director gagal diproses.')+' Saran lokal ditampilkan sebagai cadangan.';
+    results.appendChild(note);
+  }finally{
+    suggest.disabled=false;
+    suggest.textContent='✦ Cari 3 ide tema';
+  }
+});
 document.getElementById('tdCopy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(prompt.value);document.getElementById('tdCopy').textContent='Tersalin ✓';setTimeout(()=>document.getElementById('tdCopy').textContent='Salin prompt',1400)}catch{prompt.select();document.execCommand('copy')}});

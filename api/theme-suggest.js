@@ -20,6 +20,7 @@ function json(res,status,body){res.statusCode=status;res.setHeader('Content-Type
 module.exports=async function handler(req,res){
   if(req.method!=='POST') return json(res,405,{error:'Method not allowed.'});
   if(!process.env.GERAIKITA_API_KEY) return json(res,503,{error:'GERAIKITA_API_KEY belum dikonfigurasi di environment Vercel.'});
+  if(!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) return json(res,503,{error:'Konfigurasi Supabase Theme Director belum lengkap di environment Vercel.'});
   try{
     const body=typeof req.body==='string'?JSON.parse(req.body||'{}'):(req.body||{});
     const category=String(body.category||'').trim();
@@ -27,8 +28,8 @@ module.exports=async function handler(req,res){
     if(!ALLOWED_CATEGORIES.includes(category)) return json(res,400,{error:'Kategori tidak valid.'});
     const token=String(req.headers.authorization||'').replace(/^Bearer\s+/i,'');
     if(!token) return json(res,401,{error:'Admin session diperlukan.'});
-    if(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY){
-      const check=await fetch(process.env.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/rpc/is_admin',{method:'POST',headers:{apikey:process.env.SUPABASE_ANON_KEY,Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:'{}'});
+    {
+      const check=await fetch(process.env.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/rpc/is_admin',{method:'POST',headers:{apikey:process.env.SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:'{}'});
       const isAdmin=check.ok ? await check.json() : false;
       if(isAdmin!==true) return json(res,403,{error:'Akses Theme Director hanya untuk admin.'});
     }

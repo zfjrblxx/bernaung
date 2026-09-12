@@ -15,6 +15,9 @@ const supabaseClient = window.supabase?.createClient
     })
   : null;
 
+// Expose the initialized client for standalone pages such as Theme Director.
+if (typeof window !== 'undefined') window.supabaseClient = supabaseClient;
+
 function supabaseReady(){
   return !!supabaseClient &&
     !SUPABASE_URL.includes('YOUR_PROJECT_REF') &&
