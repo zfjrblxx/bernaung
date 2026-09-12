@@ -15,9 +15,30 @@
 </main><nav class="bottom"><a href="#beranda">Beranda</a><a href="#mempelai">Mempelai</a><a href="#acara">Acara</a><a href="#galeri">Galeri</a><button id="musicBtn">Musik</button></nav><audio id="musicAudio" loop preload="none"></audio>
 <div id="rsvpModal" class="modal"><div class="modal-panel"><button id="rsvpClose" class="modal-close">×</button><div class="section-title"><span class="eyebrow">RSVP</span><h2>Konfirmasi Kehadiran</h2></div><p class="muted">Kami sangat senang dan menantikan kehadiran Anda di acara kami. Semoga acara ini menjadi momen yang berkesan untuk kita semua.</p><div class="rsvp-form"><input id="rsvpName" placeholder="Nama"><div class="radio-row"><label><input type="radio" name="attendance" value="hadir" checked> HADIR</label><label><input type="radio" name="attendance" value="tidak_hadir"> TIDAK HADIR</label></div><input id="rsvpCount" type="number" min="1" max="20" value="1" placeholder="Jumlah Orang"><textarea id="rsvpMessage" rows="4" placeholder="Ucapan dan doa (opsional)"></textarea><button type="button" id="rsvpBtn" class="primary">Kirim Konfirmasi</button><small id="rsvpStatus" class="muted"></small></div></div></div><div id="lightbox" class="lightbox"><img id="lightboxImg" alt="Foto galeri"></div><div id="toast" class="toast"></div><script>
 (async()=>{
+const $boot=id=>document.getElementById(id);
+const bootOpen=$boot('openBtn');
+if(bootOpen){
+  bootOpen.type='button';
+  bootOpen.addEventListener('click',()=>{
+    const cover=$boot('cover');
+    if(cover) cover.classList.add('hidden');
+    const audio=$boot('musicAudio');
+    if(audio && audio.src) audio.play().catch(()=>{});
+  },{once:false});
+}
 const q=new URLSearchParams(location.search),slug=q.get('slug')||'',guest=q.get('to')||'';
 if(slug&&location.pathname.startsWith('/templates/')){try{history.replaceState({},document.title,'/'+encodeURIComponent(slug)+(guest?'?to='+encodeURIComponent(guest):''))}catch(e){}}
-let d=null;if(supabaseReady()&&slug){const r=await supabaseClient.rpc('get_public_invitation',{p_slug:slug});d=r.data}else d=typeof getData==='function'?getData():null;if(!d)return;
+let d=null;
+try{
+  if(typeof supabaseReady==='function' && supabaseReady() && slug){
+    const r=await supabaseClient.rpc('get_public_invitation',{p_slug:slug});
+    d=r?.data||null;
+  }
+}catch(e){ d=null; }
+if(!d && typeof getData==='function'){
+  try{ d=getData(); }catch(e){ d=null; }
+}
+if(!d)return;
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const groom=d.groom||'Mempelai Pria',bride=d.bride||'Mempelai Wanita',photos=Array.isArray(d.photos)?d.photos.map(x=>typeof x==='string'?x:x?.url||'').filter(Boolean):[],mode=d.photoMode||'own',sets=Array.isArray(d.defaultPhotos)?d.defaultPhotos:[],set=sets.find(x=>String(x.id)===String(mode))||sets.find(x=>x.setKey==='default1'),items=Array.isArray(set?.items)?set.items:[],def=i=>items.find(x=>Number(x.slotIndex)===i)?.imageUrl||'',ci=mode==='own'?Number(d.coverPhotoIndex):Number(set?.coverPhotoIndex??2),pool=mode==='own'?photos:[0,1,2,3,4,5,6,7].map(def).filter(Boolean),cover=mode==='own'?(pool[ci]||pool[2]||pool[0]||''):(def(ci)||def(2)||def(0)||'');
 const date=d.date?new Date(d.date+'T00:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'Tanggal pernikahan',short=d.date?new Date(d.date+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'';
@@ -31,7 +52,7 @@ $('events').innerHTML=schedules.map((e,i)=>`<article class="event-card"><b>0${i+
 $('mapFrame').src=`https://www.google.com/maps?q=${encodeURIComponent(loc||'Indonesia')}&output=embed`;$('mapAddress').textContent=loc||'Lokasi acara';$('mapNav').href=d.maps||`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc||'Indonesia')}`;
 $('gallery').innerHTML=gal.map((u,i)=>`<figure><button data-photo="${i}">${img(u,'Galeri '+(i+1))}</button></figure>`).join('');const accounts=Array.isArray(d.accounts)?d.accounts.filter(x=>x?.provider||x?.number||x?.name):[];$('accounts').innerHTML=accounts.length?accounts.map(a=>`<article class="account"><small>${esc(a.provider||'Rekening')}</small><strong>${esc(a.number||'')}</strong><span>a.n. ${esc(a.name||'')}</span><button data-copy="${esc(a.number||'')}">Salin</button></article>`).join(''):'<p class="muted">Informasi kado digital belum ditambahkan.</p>';
 const greetings=Array.isArray(d.greetings)?d.greetings.filter(x=>x?.message):[];$('greetings').innerHTML=greetings.length?greetings.slice(0,12).map(g=>`<article class="greeting"><b>${esc(g.guest_name||'Tamu')}</b><p>${esc(g.message)}</p></article>`).join(''):'<p class="muted">Belum ada ucapan. Jadilah yang pertama memberikan doa.</p>';
-$('rsvpName').value=guest;$('openBtn').onclick=()=>{$('cover').classList.add('hidden');if(d.music)$('musicAudio').play().catch(()=>{})};$('rsvpOpen').onclick=()=>{$('rsvpModal').classList.add('show');document.body.classList.add('modal-open')};$('rsvpClose').onclick=()=>{$('rsvpModal').classList.remove('show');document.body.classList.remove('modal-open')};
+$('rsvpName').value=guest;$('rsvpOpen').onclick=()=>{$('rsvpModal').classList.add('show');document.body.classList.add('modal-open')};$('rsvpClose').onclick=()=>{$('rsvpModal').classList.remove('show');document.body.classList.remove('modal-open')};
 $('musicBtn').onclick=()=>{const a=$('musicAudio');if(!d.music)return;if(a.paused)a.play().catch(()=>{});else a.pause();$('musicBtn').classList.toggle('on',!a.paused)};if(d.music)$('musicAudio').src=d.music;
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1700)}
 document.addEventListener('click',async e=>{const c=e.target.closest('[data-copy]');if(c){try{await navigator.clipboard.writeText(c.dataset.copy||'');toast('Nomor rekening disalin')}catch(_){toast('Gagal menyalin')}}const p=e.target.closest('[data-photo]');if(p){$('lightboxImg').src=gal[Number(p.dataset.photo)]||'';$('lightbox').classList.add('show')}});$('lightbox').onclick=()=>$('lightbox').classList.remove('show');
