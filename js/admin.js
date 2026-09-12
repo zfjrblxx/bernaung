@@ -53,18 +53,45 @@ async function loadOrders(){
   orders=data||[]; render();
 }
 
+function relativeTime(value){
+  if(!value)return '';
+  const d=new Date(value), now=new Date(), diff=Math.max(0,now-d), min=Math.floor(diff/60000), h=Math.floor(min/60), day=Math.floor(h/24);
+  if(day>0)return `${day} HARI YANG LALU`;
+  if(h>0)return `${h} JAM YANG LALU`;
+  if(min>0)return `${min} MENIT YANG LALU`;
+  return 'BARU SAJA';
+}
+function eventLabel(value){
+  if(!value)return 'Tanggal acara belum diatur';
+  const d=new Date(value+'T00:00:00');
+  if(Number.isNaN(d.getTime()))return String(value);
+  return new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric'}).format(d);
+}
 function paymentRow(d){
   const status=d.status||d.paymentStatus||'pending';
   const manageUrl=status==='approved' && d.manage_id?abs('/m/'+d.manage_id):'';
-  return `<div class="admin-table-row order-row">
+  const id=esc(d.id||'');
+  return `<article class="order-row" data-status="${esc(status)}" data-search="${esc(((d.groom||'')+' '+(d.bride||'')).toLowerCase())}">
     <div class="order-summary" data-order-toggle tabindex="0" role="button" aria-expanded="false">
-      <div class="order-pair"><span>Pasangan</span><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong></div>
-      <div class="order-status"><span>Status</span>${statusBadge(status)}</div>
+      <div class="order-main"><span class="order-dot"></span><div><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong><small>${esc(relativeTime(d.created_at))}<i></i>FOR ${esc(eventLabel(d.event_date))}</small></div></div>
+      <div class="order-status">${statusBadge(status)}<span class="order-chevron">⌄</span></div>
     </div>
-    <div class="order-actions"><span>Aksi</span><div class="order-action-buttons"><button class="small-btn" data-payment-detail="${esc(d.id||'')}">Periksa</button>${manageUrl?`<a class="manage-url-btn" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:`<span class="manage-unavailable">Belum tersedia</span>`}<button type="button" class="delete-order-btn" data-delete-order="${esc(d.id||'')}">Hapus</button></div></div>
-  </div>`
+    <div class="order-actions"><button type="button" class="order-action" data-payment-detail="${id}">Periksa</button>${manageUrl?`<a class="order-action" href="${esc(manageUrl)}" target="_blank" rel="noopener">Kelola ↗</a>`:`<span class="order-action is-disabled">Kelola</span>`}<button type="button" class="order-action danger" data-delete-order="${id}">Hapus</button></div>
+  </article>`;
 }
 
+function renderOrderStats(){
+  const all=orders.length,pending=orders.filter(x=>(x.status||x.paymentStatus)==='pending').length,approved=orders.filter(x=>(x.status||x.paymentStatus)==='approved').length,rejected=orders.filter(x=>(x.status||x.paymentStatus)==='rejected').length;
+  [['orderStatAll',all],['orderStatPending',pending],['orderStatApproved',approved],['orderStatRejected',rejected]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v});
+}
+function renderOrders(){
+  const wrap=document.getElementById('ordersList'); if(!wrap)return;
+  const filter=document.querySelector('.admin-filter.active')?.dataset.orderFilter||'all';
+  const q=(document.getElementById('orderSearch')?.value||'').trim().toLowerCase();
+  const filtered=orders.filter(d=>{const s=d.status||d.paymentStatus||'pending';const okFilter=filter==='all'||s===filter;const name=((d.groom||'')+' '+(d.bride||'')).toLowerCase();return okFilter&&(!q||name.includes(q));});
+  wrap.innerHTML=filtered.length?filtered.map(paymentRow).join(''):'<div class="admin-empty">Tidak ada pesanan yang sesuai.</div>';
+  bind();
+}
 function render(){
   const has=orders.length>0;
   const pending=orders.filter(x=>(x.status||x.paymentStatus)==='pending').length;
@@ -74,12 +101,12 @@ function render(){
   document.getElementById('statPending').textContent=pending;
   document.getElementById('statActive').textContent=active;
   document.getElementById('statRevenue').textContent=money(revenue);
-  document.getElementById('overviewPayments').innerHTML=has?paymentRow(orders[0]):'<div class="admin-empty">Belum ada pesanan.</div>';
-  document.getElementById('ordersList').innerHTML=has?orders.map(paymentRow).join(''):'<div class="admin-empty">Belum ada pesanan.</div>';
+  renderOrderStats();
+  document.getElementById('overviewPayments').innerHTML=has?orders.slice(0,5).map(paymentRow).join(''):'<div class="admin-empty">Belum ada pesanan.</div>';
   document.getElementById('customersList').innerHTML=has?orders.map(d=>`<div class="admin-customer"><div><span>Pasangan</span><strong>${esc(d.groom||'-')} &amp; ${esc(d.bride||'-')}</strong></div><div><span>WhatsApp</span><strong>${esc(d.whatsapp||'-')}</strong></div><div><span>Tema</span><strong>${esc(d.template_name||'-')}</strong></div></div>`).join(''):'<div class="admin-empty">Belum ada customer.</div>';
   document.getElementById('templatesList').innerHTML='<div class="template-stat-list">'+TEMPLATE_DATA.map(t=>`<div class="template-stat"><div><strong>${esc(t.name)}</strong><span>${esc(t.category)}</span></div><strong>${orders.filter(d=>Number(d.template_id)===t.id).length} pesanan</strong></div>`).join('')+'</div>';
   const devPrice=document.getElementById('devPriceInput'); if(devPrice)devPrice.value=developerSettings.invitation_price??currentPrice??'';
-  bind();
+  renderOrders();
 }
 
 async function openModal(id){
@@ -223,12 +250,7 @@ async function loadSettings(){await loadDeveloperSettings()}
 async function savePrice(){const input=document.getElementById('devPriceInput');if(input)await saveDeveloperSetting('invitation_price',String(Number(input.value||0)),'Harga undangan berhasil disimpan.')}
 function bind(){
   document.querySelectorAll('[data-order-toggle]').forEach(el=>{
-    const toggle=()=>{
-      const row=el.closest('.order-row');
-      if(!row)return;
-      const expanded=row.classList.toggle('is-expanded');
-      el.setAttribute('aria-expanded',expanded?'true':'false');
-    };
+    const toggle=()=>{const row=el.closest('.order-row');if(!row)return;const expanded=row.classList.toggle('is-expanded');el.setAttribute('aria-expanded',expanded?'true':'false');};
     el.onclick=toggle;
     el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}};
   });
@@ -236,6 +258,7 @@ function bind(){
   document.querySelectorAll('[data-delete-order]').forEach(b=>b.onclick=e=>{e.stopPropagation();deleteOrder(b.dataset.deleteOrder)});
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchSection(b.dataset.go));
 }
+
 function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template',settings:'Pengaturan',media:'Media','dev-price':'Harga Undangan','dev-payment':'Pembayaran','dev-whatsapp':'WhatsApp','dev-reminder':'Notif Sudah 14 Hari Setelah Acara','dev-maintenance':'Maintenance Web'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open')}
 
 document.getElementById('googleLogin')?.addEventListener('click',async()=>{if(!supabaseReady()){openAdminDialog({kicker:'KONFIGURASI',title:'Supabase belum aktif',message:'Isi Supabase URL dan publishable key di js/supabase.js terlebih dahulu.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden');return;}const {error}=await supabaseClient.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/admin-dashboard'}});if(error){openAdminDialog({kicker:'LOGIN ADMIN',title:'Google Login gagal',message:error.message||'Terjadi kesalahan saat login.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden')}});
@@ -247,6 +270,8 @@ document.getElementById('closePaymentModal')?.addEventListener('click',closeModa
 document.getElementById('paymentModal')?.addEventListener('click',e=>{if(e.target.id==='paymentModal')closeModal()});
 document.addEventListener('click',e=>{if(e.target.matches('[data-dialog-close],[data-dialog-cancel]')){closeAdminDialog();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAdminDialog();});
+document.querySelectorAll('.admin-filter').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.admin-filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderOrders();}));
+document.getElementById('orderSearch')?.addEventListener('input',renderOrders);
 document.getElementById('adminLogout')?.addEventListener('click',async()=>{if(supabaseReady())await supabaseClient.auth.signOut();location.href='/admin'});
 
 (async()=>{
