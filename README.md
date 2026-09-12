@@ -495,3 +495,29 @@ Bernaung saat ini memiliki fondasi untuk:
 - Maintenance mode.
 
 README ini disusun berdasarkan struktur dan fitur pada baseline project yang sedang digunakan.
+
+## AI Theme Director
+
+Bernaung now includes an AI-assisted Theme Director for generating original visual concepts before a template is coded.
+
+### Flow
+1. Admin opens **AI Theme Director**.
+2. Select one of the 8 customer categories: Minimal, Elegant, Romantic, Modern, Artistic, Nature, Playful, Islamic.
+3. Optionally provide a theme name.
+4. AI returns exactly 3 materially different art directions.
+5. Select one concept to generate the fixed Bernaung master prompt.
+6. Use that prompt as the source brief for building the actual HTML template.
+
+### OpenAI setup
+The AI call is server-side through `/api/theme-suggest.js`. Do **not** put the API key in frontend JavaScript.
+
+Set these Vercel environment variables:
+
+- `OPENAI_API_KEY` — required
+- `OPENAI_MODEL` — optional, defaults to `gpt-5.6-luna`
+- `SUPABASE_URL` — required for admin-session verification
+- `SUPABASE_ANON_KEY` — required for admin-session verification
+
+The endpoint verifies the logged-in Supabase admin session before calling OpenAI.
+
+The fixed Bernaung system prompt locks invitation structure, database/runtime concepts, the exact 6-photo gallery rule, RSVP, Maps, schedules, accounts, greetings, music, and other existing functionality. AI is only responsible for creative direction and does not get permission to invent replacement database fields.

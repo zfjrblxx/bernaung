@@ -1,11 +1,7 @@
 let currentPrice = null;
 let developerSettings = {};
 let paymentMethodsDraft = [];
-const TEMPLATE_DATA = [
-  {id:5,name:'Selasar Rindu',category:'Romantic',url:'templates/romantic-selasar-rindu.html'},
-  {id:6,name:'Lembar Senandika',category:'Romantic',url:'templates/romantic-lembar-senandika.html'},
-  {id:9,name:'Ruang Sela',category:'Artistic',url:'templates/artistic-ruang-sela.html'}
-];
+const TEMPLATE_DATA = [];
 
 function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
 function money(n){return n===null||n===undefined||n===''?'':new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0)}
@@ -349,7 +345,7 @@ function bindTemplateControls(){
   document.querySelectorAll('[data-template-edit]').forEach(b=>b.onclick=()=>{const t=templateList().find(x=>String(x.id)===String(b.dataset.templateEdit));if(t)openTemplateEditor(t)});
 }
 
-function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template',settings:'Pengaturan',media:'Media','dev-price':'Harga Undangan','dev-payment':'Pembayaran','dev-whatsapp':'WhatsApp','dev-reminder':'Notif Sudah 14 Hari Setelah Acara','dev-maintenance':'Maintenance Web'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open')}
+function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template', 'theme-director':'AI Theme Director',settings:'Pengaturan',media:'Media','dev-price':'Harga Undangan','dev-payment':'Pembayaran','dev-whatsapp':'WhatsApp','dev-reminder':'Notif Sudah 14 Hari Setelah Acara','dev-maintenance':'Maintenance Web'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open')}
 
 document.getElementById('googleLogin')?.addEventListener('click',async()=>{if(!supabaseReady()){openAdminDialog({kicker:'KONFIGURASI',title:'Supabase belum aktif',message:'Isi Supabase URL dan publishable key di js/supabase.js terlebih dahulu.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden');return;}const {error}=await supabaseClient.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/admin-dashboard'}});if(error){openAdminDialog({kicker:'LOGIN ADMIN',title:'Google Login gagal',message:error.message||'Terjadi kesalahan saat login.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden')}});
 document.querySelectorAll('.admin-nav').forEach(b=>b.onclick=()=>switchSection(b.dataset.section));

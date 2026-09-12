@@ -1,9 +1,4 @@
-const templates=[
-{id:5,name:'Selasar Rindu',cat:'Romantic',tone:'romantic',url:'templates/romantic-selasar-rindu.html'},
-{id:6,name:'Lembar Senandika',cat:'Romantic',tone:'soft',url:'templates/romantic-lembar-senandika.html'},
-{id:9,name:'Ruang Sela',cat:'Artistic',tone:'art',url:'templates/artistic-ruang-sela.html'},
-{id:14,name:'Ruang Teduh',cat:'Minimal',tone:'minimal',url:'templates/minimal-ruang-teduh.html'}
-];
+const templates=[];
 const cats=['Semua','Minimal','Elegant','Romantic','Modern','Artistic','Nature','Playful','Islamic'];
 function getData(){try{return JSON.parse(localStorage.getItem('bernaungData')||'{}')}catch{return {}}}
 function saveData(data){localStorage.setItem('bernaungData',JSON.stringify(data))}
