@@ -23,7 +23,8 @@ async function loadDefaultPhotoSets(){
 const templates=[
 {id:3,name:'Adat Nusantara',cat:'Elegant',url:'/templates/adat-nusantara.html'},
 {id:13,name:'Playful Ceria',cat:'Playful',url:'/templates/playful-ceria.html'},
-{id:14,name:'Ruang Teduh',cat:'Minimal',url:'/templates/minimal-ruang-teduh.html'}
+{id:14,name:'Ruang Teduh',cat:'Minimal',url:'/templates/minimal-ruang-teduh.html'},
+{id:15,name:'Pita Kertas',cat:'Playful',url:'/templates/pita-kertas.html'}
 ];
 const esc=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const val=v=>String(v??'').trim();

@@ -338,7 +338,8 @@ bernaung-main/
 │
 ├── templates/
 │   ├── adat-nusantara.html
-│   └── playful-ceria.html
+│   ├── playful-ceria.html
+│   └── pita-kertas.html
 │
 └── *.sql
 ```
@@ -364,6 +365,7 @@ supabase-admin-bootstrap.sql
 supabase-v6-upgrade.sql
 supabase-developer.sql
 supabase-public-photo-fix-v1.sql
+supabase-pita-kertas.sql
 ```
 
 > **Catatan:** file SQL merupakan migration/patch untuk kondisi schema dan fitur yang berbeda. Jangan menjalankan semua file secara membabi buta pada database yang sudah berjalan. Gunakan migration yang sesuai dengan kondisi database dan versi project yang digunakan.
