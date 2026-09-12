@@ -92,7 +92,7 @@ function render(){
   document.getElementById('overviewPayments').innerHTML=has?orders.slice(0,5).map(paymentRow).join(''):'<div class="admin-empty">Belum ada pesanan.</div>';
   document.getElementById('ordersList').innerHTML=has?orders.map(paymentRow).join(''):'<div class="admin-empty">Belum ada pesanan.</div>';
   document.getElementById('customersList').innerHTML=has?orders.map(d=>`<div class="admin-flat-row"><div><strong>${esc((d.groom||'-')+' & '+(d.bride||'-'))}</strong><small>${esc(d.whatsapp||'WhatsApp belum tersedia')}</small></div><span>${esc(d.template_name||'-')}</span></div>`).join(''):'<div class="admin-empty">Belum ada customer.</div>';
-  document.getElementById('templatesList').innerHTML='<div class="template-stat-list">'+TEMPLATE_DATA.map(t=>`<div class="template-stat"><div><strong>${esc(t.name)}</strong><span>${esc(t.category)}</span></div><strong>${orders.filter(d=>Number(d.template_id)===t.id).length} pesanan</strong></div>`).join('')+'</div>';
+  renderTemplates();
   const devPrice=document.getElementById('devPriceInput'); if(devPrice)devPrice.value=developerSettings.invitation_price??currentPrice??'';
   bind();
 }
@@ -261,6 +261,46 @@ function applyOrderFilters(){
   });
 }
 
+
+let templatePage = 1;
+const TEMPLATE_PAGE_SIZE = 8;
+let templateFilter = 'Semua';
+
+function templateOrders(t){ return orders.filter(d=>Number(d.template_id)===Number(t.id)).length; }
+function templateInitial(t){ return String(t.name||'T').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase(); }
+function templateDescription(t){
+  const map={Minimal:'Desain minimalis dengan tampilan bersih dan modern.',Elegant:'Sentuhan elegan dengan detail yang menawan.',Romantic:'Nuansa romantis dengan sentuhan bunga yang indah.',Modern:'Tampilan modern dengan desain yang kekinian.','Elegant':'Sentuhan elegan dengan detail yang menawan.',Artistic:'Eksplorasi visual artistik untuk undangan personal.',Nature:'Nuansa natural dengan sentuhan lembut.',Playful:'Tampilan ceria dan ringan untuk momen bahagia.',Islamic:'Desain bernuansa islami yang tenang dan elegan.'};
+  return map[t.category]||'Template undangan yang dapat dipilih oleh customer.';
+}
+function renderTemplates(){
+  const q=(document.getElementById('templateSearch')?.value||'').trim().toLowerCase();
+  const sort=document.getElementById('templateSort')?.value||'newest';
+  const categories=['Semua',...Array.from(new Set(TEMPLATE_DATA.map(t=>t.category)))];
+  const filtered=TEMPLATE_DATA.filter(t=>(templateFilter==='Semua'||t.category===templateFilter)&&(!q||(`${t.name} ${t.category}`).toLowerCase().includes(q)));
+  const sorted=[...filtered].sort((a,b)=>sort==='name'?a.name.localeCompare(b.name):sort==='orders'?templateOrders(b)-templateOrders(a):a.id-b.id);
+  const total=sorted.length, pages=Math.max(1,Math.ceil(total/TEMPLATE_PAGE_SIZE));
+  templatePage=Math.min(templatePage,pages);
+  const shown=sorted.slice((templatePage-1)*TEMPLATE_PAGE_SIZE,templatePage*TEMPLATE_PAGE_SIZE);
+  const statCats=['Minimal','Elegant','Romantic','Modern','Adat Nusantara','Lainnya'];
+  const stat=document.getElementById('templateStats');
+  if(stat) stat.innerHTML=`<div class="template-stat-card"><span>SEMUA TEMPLATE</span><strong>${TEMPLATE_DATA.length}</strong><small>dalam ${categories.length-1} kategori</small></div>`+statCats.slice(0,5).map(cat=>{const n=cat==='Adat Nusantara'?TEMPLATE_DATA.filter(t=>t.name==='Adat Nusantara').length:TEMPLATE_DATA.filter(t=>t.category===cat).length;return `<div class="template-stat-card"><span>${esc(cat)}</span><strong>${n}</strong><small>template</small></div>`}).join('')+`<div class="template-stat-card"><span>LAINNYA</span><strong>${TEMPLATE_DATA.length-statCats.slice(0,5).reduce((n,c)=>n+(c==='Adat Nusantara'?TEMPLATE_DATA.filter(t=>t.name==='Adat Nusantara').length:TEMPLATE_DATA.filter(t=>t.category===c).length),0)}</strong><small>template</small></div>`;
+  const tabs=document.getElementById('templateTabs');
+  if(tabs) tabs.innerHTML=categories.map(cat=>`<button type="button" class="template-tab ${templateFilter===cat?'active':''}" data-template-filter="${esc(cat)}">${esc(cat)} <span>(${cat==='Semua'?TEMPLATE_DATA.length:TEMPLATE_DATA.filter(t=>t.category===cat).length})</span></button>`).join('');
+  const list=document.getElementById('templatesList');
+  if(list) list.innerHTML=shown.length?shown.map(t=>{const n=templateOrders(t);const thumb=t.url?`<iframe src="${esc(t.url)}" title="${esc(t.name)}" loading="lazy"></iframe>`:`<div class="template-placeholder"><span>${esc(t.category.toUpperCase())}</span><strong>${esc(templateInitial(t))}</strong><small>${esc(t.name)}</small></div>`;return `<article class="template-admin-card"><div class="template-admin-thumb">${thumb}<span class="template-category-badge">${esc(t.category)}</span></div><div class="template-admin-content"><div class="template-card-top"><div><h3>${esc(t.name)}</h3><p>${esc(templateDescription(t))}</p></div><button type="button" class="template-more" aria-label="Aksi ${esc(t.name)}">•••</button></div><div class="template-order-count">♧ ${n} pesanan</div><div class="template-card-actions">${t.url?`<a class="template-preview-btn" href="${esc(t.url)}" target="_blank" rel="noopener">◉&nbsp; Preview</a>`:`<button type="button" class="template-preview-btn" data-template-preview="${esc(t.id)}">◉&nbsp; Preview</button>`}<button type="button" class="template-edit-btn" data-template-edit="${esc(t.id)}">✎&nbsp; Edit</button></div></div></article>`}).join(''):'<div class="template-no-results">Tidak ada template yang cocok.</div>';
+  const label=document.getElementById('templateCountLabel'); if(label) label.textContent=`Menampilkan ${shown.length} dari ${total} template`;
+  const pag=document.getElementById('templatePagination'); if(pag) pag.innerHTML=`<button type="button" data-template-page="prev" ${templatePage<=1?'disabled':''}>‹</button>${Array.from({length:pages},(_,i)=>`<button type="button" class="${i+1===templatePage?'active':''}" data-template-page="${i+1}">${i+1}</button>`).join('')}<button type="button" data-template-page="next" ${templatePage>=pages?'disabled':''}>›</button>`;
+  bindTemplateControls();
+}
+function bindTemplateControls(){
+  document.querySelectorAll('[data-template-filter]').forEach(b=>b.onclick=()=>{templateFilter=b.dataset.templateFilter;templatePage=1;renderTemplates()});
+  document.getElementById('templateSearch')?.addEventListener('input',()=>{templatePage=1;renderTemplates()});
+  document.getElementById('templateSort')?.addEventListener('change',()=>{templatePage=1;renderTemplates()});
+  document.querySelectorAll('[data-template-page]').forEach(b=>b.onclick=()=>{if(b.disabled)return;const v=b.dataset.templatePage;if(v==='prev')templatePage--;else if(v==='next')templatePage++;else templatePage=Number(v);renderTemplates()});
+  document.querySelectorAll('[data-template-preview]').forEach(b=>b.onclick=()=>openAdminDialog({kicker:'TEMPLATE',title:'Preview belum tersedia',message:'Template ini belum memiliki halaman preview yang terhubung.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}}));
+  document.querySelectorAll('[data-template-edit]').forEach(b=>b.onclick=()=>{const t=TEMPLATE_DATA.find(x=>String(x.id)===String(b.dataset.templateEdit));openAdminDialog({kicker:'TEMPLATE',title:`Edit ${t?.name||'template'}`,message:'Editor template akan digunakan untuk mengatur file dan detail template ini.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}})});
+}
+
 function switchSection(name){document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));document.getElementById('section-'+name)?.classList.add('active');document.querySelectorAll('.admin-nav').forEach(x=>x.classList.toggle('active',x.dataset.section===name));const titles={overview:'Dashboard',orders:'Daftar Pesanan',customers:'Customer',templates:'Template',settings:'Pengaturan',media:'Media','dev-price':'Harga Undangan','dev-payment':'Pembayaran','dev-whatsapp':'WhatsApp','dev-reminder':'Notif Sudah 14 Hari Setelah Acara','dev-maintenance':'Maintenance Web'};document.getElementById('pageTitle').textContent=titles[name]||'Dashboard';document.getElementById('adminSidebar')?.classList.remove('open')}
 
 document.getElementById('googleLogin')?.addEventListener('click',async()=>{if(!supabaseReady()){openAdminDialog({kicker:'KONFIGURASI',title:'Supabase belum aktif',message:'Isi Supabase URL dan publishable key di js/supabase.js terlebih dahulu.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden');return;}const {error}=await supabaseClient.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/admin-dashboard'}});if(error){openAdminDialog({kicker:'LOGIN ADMIN',title:'Google Login gagal',message:error.message||'Terjadi kesalahan saat login.',confirmText:'Oke',cancelText:'',onConfirm:()=>{}});document.querySelector('#adminActionModal [data-dialog-cancel]')?.classList.add('hidden')}});
@@ -273,6 +313,7 @@ document.getElementById('paymentModal')?.addEventListener('click',e=>{if(e.targe
 document.addEventListener('click',e=>{if(e.target.matches('[data-dialog-close],[data-dialog-cancel]')){closeAdminDialog();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAdminDialog();});
 document.getElementById('adminLogout')?.addEventListener('click',async()=>{if(supabaseReady())await supabaseClient.auth.signOut();location.href='/admin'});
+document.getElementById('addTemplateBtn')?.addEventListener('click',()=>openAdminDialog({kicker:'TEMPLATE',title:'Tambah Template',message:'Tambahkan template baru ke koleksi Bernaung. Pengaturan file template dapat dihubungkan setelah template dibuat.',confirmText:'Siap',cancelText:'Batal',onConfirm:()=>{}}));
 
 (async()=>{
   if(!/\/(admin-dashboard(?:\.html)?)$/.test(location.pathname)) return;
