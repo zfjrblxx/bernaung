@@ -508,16 +508,16 @@ Bernaung now includes an AI-assisted Theme Director for generating original visu
 5. Select one concept to generate the fixed Bernaung master prompt.
 6. Use that prompt as the source brief for building the actual HTML template.
 
-### OpenAI setup
+### GeraiKita + Claude Sonnet 5 setup
 The AI call is server-side through `/api/theme-suggest.js`. Do **not** put the API key in frontend JavaScript.
 
 Set these Vercel environment variables:
 
-- `OPENAI_API_KEY` — required
-- `OPENAI_MODEL` — optional, defaults to `gpt-5.6-luna`
+- `GERAIKITA_API_KEY` — required; keep the `gk-...` key server-side only
+- `GERAIKITA_MODEL` — optional, defaults to `claude-sonnet-5`
 - `SUPABASE_URL` — required for admin-session verification
 - `SUPABASE_ANON_KEY` — required for admin-session verification
 
-The endpoint verifies the logged-in Supabase admin session before calling OpenAI.
+The endpoint verifies the logged-in Supabase admin session before calling GeraiKita. It uses the OpenAI-compatible Chat Completions endpoint at `https://ai.geraikita.com/v1/chat/completions` with `claude-sonnet-5`.
 
 The fixed Bernaung system prompt locks invitation structure, database/runtime concepts, the exact 6-photo gallery rule, RSVP, Maps, schedules, accounts, greetings, music, and other existing functionality. AI is only responsible for creative direction and does not get permission to invent replacement database fields.

@@ -19,7 +19,7 @@ function json(res,status,body){res.statusCode=status;res.setHeader('Content-Type
 
 module.exports=async function handler(req,res){
   if(req.method!=='POST') return json(res,405,{error:'Method not allowed.'});
-  if(!process.env.OPENAI_API_KEY) return json(res,503,{error:'OPENAI_API_KEY belum dikonfigurasi di environment Vercel.'});
+  if(!process.env.GERAIKITA_API_KEY) return json(res,503,{error:'GERAIKITA_API_KEY belum dikonfigurasi di environment Vercel.'});
   try{
     const body=typeof req.body==='string'?JSON.parse(req.body||'{}'):(req.body||{});
     const category=String(body.category||'').trim();
@@ -33,14 +33,15 @@ module.exports=async function handler(req,res){
       if(isAdmin!==true) return json(res,403,{error:'Akses Theme Director hanya untuk admin.'});
     }
     const userPrompt=`Kategori: ${category}\nNama tema yang diinginkan: ${themeName||'(belum ditentukan; buat nama yang kuat)'}\nBuat tiga konsep yang berbeda, premium, commercially usable, dan tidak generik.`;
-    const response=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:process.env.OPENAI_MODEL||'gpt-5.6-luna',instructions:SYSTEM_PROMPT,input:userPrompt,temperature:0.9,max_output_tokens:1800,store:false})});
+    const model=process.env.GERAIKITA_MODEL||'claude-sonnet-5';
+    const response=await fetch('https://ai.geraikita.com/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${process.env.GERAIKITA_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model,messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:userPrompt}],temperature:0.9,max_tokens:1800})});
     const data=await response.json();
-    if(!response.ok) return json(res,response.status,{error:data?.error?.message||'OpenAI request gagal.'});
-    const text=data?.output_text||'';
+    if(!response.ok) return json(res,response.status,{error:data?.error?.message||'GeraiKita request gagal.'});
+    const text=data?.choices?.[0]?.message?.content||'';
     const match=text.match(/\{[\s\S]*\}/);
     if(!match) return json(res,502,{error:'AI mengembalikan format yang tidak bisa diproses.'});
     const parsed=JSON.parse(match[0]);
     if(!Array.isArray(parsed.suggestions)||parsed.suggestions.length!==3) return json(res,502,{error:'AI tidak mengembalikan 3 konsep.'});
-    return json(res,200,{suggestions:parsed.suggestions.slice(0,3),model:data.model||process.env.OPENAI_MODEL||'gpt-5.6-luna'});
+    return json(res,200,{suggestions:parsed.suggestions.slice(0,3),model:data.model||model});
   }catch(e){return json(res,500,{error:e?.message||'Theme Director gagal diproses.'});}
 };
