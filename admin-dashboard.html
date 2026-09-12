@@ -20,7 +20,13 @@
 </section>
 
 <section id="section-customers" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">CUSTOMER</span><h2>Customer</h2><p>Data customer dari pesanan saat ini.</p></div></div><div class="admin-flat-list" id="customersList"></div></section>
-<section id="section-templates" class="admin-section"><div class="admin-section-head"><div><span class="eyebrow">KOLEKSI</span><h2>Koleksi tema</h2><p>15 tema dalam 8 kategori Bernaung.</p></div></div><div id="templatesList" class="admin-flat-list"></div></section>
+<section id="section-templates" class="admin-section template-admin-section">
+  <div class="admin-section-head template-page-head"><div><span class="eyebrow">KOLEKSI</span><h2>Template</h2><p>Kelola koleksi tema undangan yang tersedia untuk customer.</p></div><button type="button" class="template-add-btn" id="addTemplateBtn">+ Tambah Template</button></div>
+  <div id="templateStats" class="template-admin-stats"></div>
+  <div class="template-toolbar"><div id="templateTabs" class="template-tabs"></div><div class="template-tools"><label class="template-search"><span>⌕</span><input id="templateSearch" type="search" placeholder="Cari template..." autocomplete="off"></label><select id="templateSort"><option value="newest">Terbaru</option><option value="name">Nama A–Z</option><option value="orders">Pesanan terbanyak</option></select></div></div>
+  <div id="templatesList" class="template-admin-grid"></div>
+  <div class="template-admin-footer"><span id="templateCountLabel"></span><div id="templatePagination" class="template-pagination"></div></div>
+</section>
 
 <section id="section-media" class="admin-section media-page">
   
